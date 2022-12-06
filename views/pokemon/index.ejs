@@ -11,6 +11,24 @@
 	<%- include('../partials/header') %>
 	<main>
 		<h1>Pokemon List</h1>
+		<table id="pokemonlist">
+			<tr class="headers">
+				<th>Pokemon</th>
+				<th>Image</th>
+				<th>Nickname</th>
+				<th>Level</th>
+				<th>Trainer</th>
+			</tr>
+			<% pokemon.forEach(p => { %>
+				<tr>
+					<td><%= p.name %></td>
+					<td><img src="<%= p.image %> " alt="sprite"></td>
+					<td><%= p.nickname %></td>
+					<td><%= p.experience %> </td>
+					<td><%= p.trainer %> </td>
+				</tr>
+			<% }) %>
+		</div>
 	</main>
 </body>
 </html>

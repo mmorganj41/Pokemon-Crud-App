@@ -64,7 +64,7 @@ const pokemonSchema = new Schema(
 			required: true,
 			enum: ["hardy", "bold", "modest", "calm", "timid", "lonely", "docile", "mild", "gentle", "hasty", "adamant", "impish", "bashful", "careful", "rash", "jolly", "naughty", "lax", "quirky", "naive"]
 		},
-		trainer: {type: Schema.Types.ObjectId, ref: 'User'};
+		trainer: {type: Schema.Types.ObjectId, ref: 'User'},
 	}, 
 	{
 		timestamps: true,
