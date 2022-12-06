@@ -9,3 +9,8 @@ const db = mongoose.connection;
 db.on('connected', function () {
   console.log(`Mongoose connected to: ${db.host}:${db.port}`);
 });
+
+db.on("error", function (err) {
+	console.log(`There was an ${err}`);
+});
+  
