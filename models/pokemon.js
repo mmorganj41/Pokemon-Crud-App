@@ -20,6 +20,10 @@ const pokemonSchema = new Schema(
 			default: 0,
 			required: true,
 		},
+		image: {
+			type: String,
+			required: true,
+		},
 		HP: {
 			type: Number,
 			min: 0,
