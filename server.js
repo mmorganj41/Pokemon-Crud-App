@@ -11,6 +11,7 @@ const passport = require('passport');
 const methodOverride = require('method-override');
 
 const indexRouter = require('./routes/index');
+const pokemonRouter = require('./routes/pokemon');
 
 
 // create the Express app
@@ -53,6 +54,7 @@ app.use(function (req, res, next) {
 
 // mount all routes with appropriate base paths
 app.use('/', indexRouter);
+app.use('/pokemon', pokemonRouter);
 
 
 // invalid request, send 404 page
