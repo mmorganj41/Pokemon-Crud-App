@@ -110,7 +110,9 @@ async function getPokemonInfo(object, id) {
 			object[stat] = [value, 0];
 		})
 
-		object.hp = calculateHealth(pokemon.data.hp, object.level);
+		let hp = calculateHealth(pokemon.data.hp, object.level);
+
+		object.hp = [hp, hp];
 
 		object.moves = moves.data;
 		object.moves.forEach((move, index) => {

@@ -1,8 +1,46 @@
 <%- include('../partials/header') %>
 <h1>Battle!</h1>
 <div id="battleground">
-	<div id="opponentpokemon"><div class="battlesprite"><img src="<%= opponent.images[0]%>" alt="opponent" ></div></div>
-	<div id="userpokemon"><div class="battlesprite"><img src="<%= pokemon.images[1]%>" alt="pokemon" ></div></div>
+	<div id="opponentpokemon">
+		<div class="info"> 
+			<div>
+				<div>
+					<h3><%= (opponent.nickname) ? opponent.nickname : opponent.name %> </h3>
+				</div>
+				<div>
+					<h3 id="opponentlevel">Lvl. <span><%= opponent.level %> </span></h3>
+				</div>
+			</div>
+			<div class="health-bar">
+				<div class="bar">
+					<div class="hit"></div>
+				</div>
+			</div>
+		</div>
+	  	<div class="battlesprite">
+			<img src="<%= opponent.images[0]%>" alt="opponent" >
+		</div>
+	</div>
+	<div id="userpokemon">
+		<div class="battlesprite">
+			<img src="<%= pokemon.images[1]%>" alt="pokemon" >
+		</div>
+		<div class="info"> 
+			<div>
+				<div>
+					<h3><%= (pokemon.nickname) ? pokemon.nickname : pokemon.name %> </h3>
+				</div>
+				<div>
+					<h3 id="opponentlevel">Lvl. <span><%= pokemon.level %> </span></h3>
+				</div>
+			</div>
+			<div class="health-bar">
+				<div class="bar">
+					<div class="hit"></div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 <div id="battleactions">
 	Test
