@@ -47,11 +47,16 @@ async function show(req, res, next) {
 	  		headers: {'accept-encoding': 'json'},
 		});
 
+		const moves = await Move.find({pokemon: pokemon._id});
+		const moveNames = moves.map(move => move.name);
+		pokemon.moves = moves;
+
 		const moveOptions = pokemonQuery.data.moves.reduce((filtered, moveData) => {
 			const learnMethod = moveData.version_group_details[0].move_learn_method.name;
 			const levelLearned = moveData.version_group_details[0].level_learned_at;
+			const moveName = moveData.move.name;
 	
-			if (levelLearned <= pokemonLevel && (learnMethod === 'egg' || learnMethod === 'level-up')) {
+			if (!(moveNames.includes(moveName)) && levelLearned <= pokemonLevel && (learnMethod === 'egg' || learnMethod === 'level-up')) {
 				filtered.push(moveData.move);
 			}
 			return filtered;
@@ -59,9 +64,7 @@ async function show(req, res, next) {
 
 		pokemon.moveOptions = moveOptions;
 
-		const moves = await Move.find({pokemon: pokemon._id});
-		
-		pokemon.moves = moves;
+
 		
 		res.render('pokemon/show', {title: 'Pokemon', pokemon});
 	} catch(err) {
