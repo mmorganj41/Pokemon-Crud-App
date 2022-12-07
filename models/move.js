@@ -32,7 +32,7 @@ const moveSchema = new Schema(
 			type: String,
 			required: true,
 		},
-		statchange
+		statchange: Object,
 	}
 )
 

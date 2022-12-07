@@ -13,6 +13,7 @@ const publicPath = path.join(__dirname, 'public');
 
 const indexRouter = require('./routes/index');
 const pokemonRouter = require('./routes/pokemon');
+const movesRouter = require('./routes/moves');
 
 
 // create the Express app
@@ -61,6 +62,7 @@ app.use(function (req, res, next) {
 // mount all routes with appropriate base paths
 app.use('/', indexRouter);
 app.use('/pokemon', pokemonRouter);
+app.use('/', movesRouter);
 
 
 // invalid request, send 404 page
