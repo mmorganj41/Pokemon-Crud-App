@@ -1,9 +1,9 @@
 <%- include('../partials/header') %>
 
 	<h1>Catch a Pokemon</h1>
-	<form action="/pokemon/create" method="post">
+	<form action="/pokemon" method="post">
 		<label>Name</label>
-		<select name="name">
+		<select name="url">
 			<% pokemon.forEach(p => { %>
 				<option value="<%= p.url %> "><%= p.name %> </option>
 			<% }) %>

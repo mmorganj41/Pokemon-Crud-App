@@ -24,11 +24,6 @@ const pokemonSchema = new Schema(
 			type: String,
 			required: true,
 		},
-		HP: {
-			type: Number,
-			min: 0,
-			required: true,
-		},
 		hp: {
 			type: Number,
 			min: 0,
@@ -64,7 +59,8 @@ const pokemonSchema = new Schema(
 			required: true,
 			enum: ["hardy", "bold", "modest", "calm", "timid", "lonely", "docile", "mild", "gentle", "hasty", "adamant", "impish", "bashful", "careful", "rash", "jolly", "naughty", "lax", "quirky", "naive"]
 		},
-		trainer: {type: Schema.Types.ObjectId, ref: 'User'},
+		user: {type: Schema.Types.ObjectId, ref: 'User'},
+		trainer: String,
 	}, 
 	{
 		timestamps: true,
