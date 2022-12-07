@@ -1,5 +1,8 @@
 // Constants
 
+const playerId = window.location.pathname.match(/(?<=pokemon\/)\w*(?=\/battle)/i)[0];
+const opponentId = window.location.pathname.match(/(?<=battle\/)\w*/)[0];
+
 const playerPokemon = {};
 const opponentPokemon = {};
 
@@ -59,6 +62,23 @@ const moveDamage = {
 	}
 }
 
+const natureBoost = {
+	attack: ['lonely', 'brave', 'adamant', 'naughty'],
+	defense: ['bold', 'relaxed', 'impish', 'lax'],
+	speed: ['timid', 'hasty', 'jolly', 'naive'],
+	specialAttack: ['modest', 'mild', 'quiet', 'rash'],
+	specialDefense: ['calm', 'gentle', 'sassy', 'careful'],
+}
+
+const natureDrop = {
+	attack: ['bold', 'timid', 'modest', 'calm'],
+	defense: ['lonely', 'hasty', 'mild', 'gentle'],
+	speed: ['brave', 'relaxed', 'quiet', 'sassy'],
+	specialAttack: ['adamant', 'impish', 'jolly', 'careful'],
+	specialDefense: ['naughty', 'lax', 'naive', 'rash'],
+}
+
+const stats = ['attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
 
 // Global Variables
 
@@ -68,15 +88,73 @@ const moveDamage = {
 
 // Helper Functions
 
+async function getPokemonInfo(object, id) {
+	try {
+		const pokemon = await axios({
+			method: 'get',
+			url: `http://localhost:3000/api/pokemon/${id}`,
+		})
+
+		const moves = await axios({
+			method: 'get',
+			url: `http://localhost:3000/api/pokemon/${id}/moves`,
+		})
+
+		object.name = pokemon.data.name;
+		object.types = pokemon.data.types;
+		object.experience = pokemon.data.experience;
+		object.level = pokemonLevel(pokemon.data.experience);
+		
+		stats.forEach(stat => {
+			let value = calculateStat(stat, pokemon.data[stat], object.level, pokemon.data.nature);
+			object[stat] = [value, 0];
+		})
+
+		object.hp = calculateHealth(pokemon.data.hp, object.level);
+
+		object.moves = moves.data;
+		object.moves.forEach((move, index) => {
+			object.moves[index].level = moveLevel(move.experience);
+		})
+
+	} catch(err) {
+		console.log(err);
+	}
+
+	function pokemonLevel(experience) {
+		return Math.min(Math.floor(experience ** (1 / 3)), 100);
+	}
+	
+	function moveLevel(experience) {
+		return Math.min(Math.floor(experience ** (1 / 3)), 10);
+	}
+
+	function calculateHealth(health, level) {
+		return Math.round((health*(level+1))/100 + level + 10);
+	}
+
+	function calculateStat(stat, amount, level, nature) {
+		let output = (amount*(level+1))/100 + 5;
+		if (natureBoost[stat].includes(nature)) {
+			return Math.round(output * 1.1);
+		} else if (natureDrop[stat].includes(nature)) {
+			return Math.round(output * .9);
+		} else {
+			return Math.round(output);
+		}
+	}
+}
+
 // Main Functions
 
 init();
 
 function init() {
-
+	getPokemonInfo(playerPokemon, playerId);
+	getPokemonInfo(opponentPokemon, opponentId);
 	render();
 }
 
 function render() {
-
+	console.log(playerPokemon);
 }

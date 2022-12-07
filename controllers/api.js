@@ -34,9 +34,9 @@ async function show(req,res,next) {
 	}
 }
 
-async function moveShow(req,res,next) {
+async function showPokemonMoves(req,res,next) {
 	try {
-		const move = await Move.findById(req.params.id);
+		const move = await Move.find({pokemon: req.params.id});
 
 		res.json(move);
 	} catch(err) {
@@ -49,5 +49,5 @@ module.exports = {
 	index,
 	show,
 	moveIndex,
-	moveShow,
+	showPokemonMoves,
 }
