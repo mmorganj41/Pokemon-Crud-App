@@ -112,3 +112,16 @@ nav a.active {
 	flex-direction: column;
 	justify-content: space-around;
 }
+
+#battle {
+	display: flex;
+	justify-content: space-between;
+}
+
+#battle > div {
+	margin: 25px;
+}
+
+a:visited {
+	color:#04AA6D;
+}

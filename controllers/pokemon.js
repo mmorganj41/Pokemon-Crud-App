@@ -2,12 +2,15 @@ const Pokemon = require('../models/pokemon');
 const Move = require('../models/move');
 const dataFunctions = require('../config/datafunctions');
 const axios = require('axios');
-const { move } = require('../routes');
 const pokeAPIURL = "https://pokeapi.co/api/v2/";
 
 async function index(req, res, next) {
 	try {
 		const pokemon = await Pokemon.find({})
+
+		pokemon.forEach((poke,i) => {
+			pokemon[i].level = dataFunctions.pokemonLevel(poke.experience);
+		})
 
 		res.render('pokemon/index', {title: 'All Pokemon', pokemon});
 	} catch(err) {
@@ -102,6 +105,7 @@ async function create(req, res, next) {
 		Pokemon.create(pokemon);
 
 		res.redirect('/pokemon')
+
 	} catch(err) {
 		console.log(err);
 		res.send('ERROR check terminal');

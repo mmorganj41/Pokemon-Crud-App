@@ -1,5 +1,5 @@
 function pokemonLevel(experience) {
-	return Math.floor(experience ** (1 / 3));
+	return Math.min(Math.floor(experience ** (1 / 3)), 100);
 }
 
 module.exports = {
