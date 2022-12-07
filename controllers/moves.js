@@ -33,8 +33,14 @@ async function create(req, res, next) {
 	}
 }
 
-function deleteMove(req, res, next) {
-	res.send('Router works');
+async function deleteMove(req, res, next) {
+	try {
+		const deletedMove = await Move.findByIdAndDelete(req.params.id);
+		res.redirect(`/pokemon/${deletedMove.pokemon}`);
+	} catch(err) {
+		console.log(err);
+		res.redirect('/pokemon');
+	}
 }
 
 

@@ -84,3 +84,8 @@ nav a.active {
 	display: grid;
 	grid-template-columns: auto auto;
 }
+
+.moves {
+	display: flex;
+	align-items: center;
+}

@@ -25,19 +25,24 @@
 	<div><h3>Moves:</h3>
 		<div>
 			<% pokemon.moves.forEach(move => { %>
-				<div>
-					<div><%= move.name %></div>
+				<div class="moves">
+					<div><%= move.name %>&nbsp;</div>
+					<form action="/moves/<%= move._id%>?_method=DELETE" method="post" class="delete">
+						<input type="submit" value="X">
+					</form>
 				</div>
 			<% }) %>
 		</div>
-		<form action="/pokemon/<%= pokemon._id %>/moves" method="post">
-			<select name="url">
-				<% pokemon.moveOptions.forEach(m => { %>
-					<option value="<%= m.url %>"><%= m.name %> </option>
-				<% }) %>
-			</select>
-			<input type="submit" value="Learn Move">
-		</form>
+		<% if (pokemon.moves.length < 6) { %>
+			<form action="/pokemon/<%= pokemon._id %>/moves" method="post">
+				<select name="url">
+					<% pokemon.moveOptions.forEach(m => { %>
+						<option value="<%= m.url %>"><%= m.name %> </option>
+					<% }) %>
+				</select>
+				<input type="submit" value="Learn Move">
+			</form>
+		<% } %>
 	</div>
 </div>
 
