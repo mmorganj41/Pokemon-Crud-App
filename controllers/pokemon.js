@@ -1,6 +1,8 @@
 const Pokemon = require('../models/pokemon');
+const Move = require('../models/move');
 const dataFunctions = require('../config/datafunctions');
 const axios = require('axios');
+const { move } = require('../routes');
 const pokeAPIURL = "https://pokeapi.co/api/v2/";
 
 async function index(req, res, next) {
@@ -57,6 +59,9 @@ async function show(req, res, next) {
 
 		pokemon.moveOptions = moveOptions;
 
+		const moves = await Move.find({pokemon: pokemon._id});
+		
+		pokemon.moves = moves;
 		
 		res.render('pokemon/show', {title: 'Pokemon', pokemon});
 	} catch(err) {
@@ -68,8 +73,6 @@ async function show(req, res, next) {
 
 async function create(req, res, next) {
 	try {
-		console.log(req.body.url)
-
 		const pokemonQuery = await axios({
 			method: 'get',
 			url: req.body.url,

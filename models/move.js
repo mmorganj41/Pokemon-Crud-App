@@ -15,7 +15,7 @@ const moveSchema = new Schema(
 		},
 		damageClass: {
 			type: String,
-			enum: ['special', 'physical']
+			enum: ['special', 'physical', 'status'],
 		},
 		experience: {
 			type: Number,
@@ -33,6 +33,8 @@ const moveSchema = new Schema(
 			required: true,
 		},
 		statchange: Object,
+		info: String,
+		pokemon: {type: Schema.Types.ObjectId, ref: 'Pokemon'},
 	}
 )
 

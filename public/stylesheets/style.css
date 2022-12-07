@@ -79,3 +79,8 @@ nav a.active {
 .login img {
 	height: 30px;
 }
+
+#pokemonshow {
+	display: grid;
+	grid-template-columns: auto auto;
+}

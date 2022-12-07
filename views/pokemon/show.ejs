@@ -1,31 +1,37 @@
 <%- include('../partials/header') %>
 <h1>Pokemon</h1>
-<div>
+<div id="pokemonshow">
 	<div>
-		<div><%= pokemon.name %></div>
+		<div><h3><%= pokemon.name[0].toUpperCase() + pokemon.name.substring(1, pokemon.name.length) %></h3></div>
 		<div><img src="<%= pokemon.image %>" alt="<%= pokemon.image %>"></div>
 	</div>
-	<div>
+	<div><h3>Info:</h3>
 		<div><%= pokemon.nickname %></div>
-		<div><%= pokemon.level %> </div>
-		<div><% pokemon.types.forEach(type => { %>
+		<div>Level: <%= pokemon.level %> </div>
+		<div>Type: <% pokemon.types.forEach(type => { %>
 		 	<div><%= type %></div>
 		<% }) %></div>
-		<div><%= pokemon.nature %></div>
-		<div><%= pokemon.trainer %></div>
+		<div>Nature: <%= pokemon.nature %></div>
+		<div>Trainer: <%= pokemon.trainer %></div>
 	</div>
-	<div>
-		<div><%= pokemon.hp %></div>
-		<div><%= pokemon.attack %></div>
-		<div><%= pokemon.defense %></div>
-		<div><%= pokemon.speed %></div>
-		<div><%= pokemon.specialAttack %></div>
-		<div><%= pokemon.specialDefense %></div>
+	<div><h3>Stats:</h3>
+		<div>HP: <%= pokemon.hp %></div>
+		<div>ATK: <%= pokemon.attack %></div>
+		<div>DEF: <%= pokemon.defense %></div>
+		<div>SPD: <%= pokemon.speed %></div>
+		<div>SATK: <%= pokemon.specialAttack %></div>
+		<div>SDEF: <%= pokemon.specialDefense %></div>
 	</div>
-	<div>
-		<div></div>
+	<div><h3>Moves:</h3>
+		<div>
+			<% pokemon.moves.forEach(move => { %>
+				<div>
+					<div><%= move.name %></div>
+				</div>
+			<% }) %>
+		</div>
 		<form action="/pokemon/<%= pokemon._id %>/moves" method="post">
-			<select name="name">
+			<select name="url">
 				<% pokemon.moveOptions.forEach(m => { %>
 					<option value="<%= m.url %>"><%= m.name %> </option>
 				<% }) %>

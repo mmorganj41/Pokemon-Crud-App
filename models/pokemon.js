@@ -12,7 +12,6 @@ const pokemonSchema = new Schema(
 			type: String,
 			enum: ["normal", "fighting","flying","poison","ground","rock","bug","ghost", "steel", "fire", "water", "grass", "electric", "psychic", "ice", "dragon", "dark"],
 		}],
-		moves: [{type: Schema.Types.ObjectId, ref: 'Move'}],
 		experience: {
 			type: Number,
 			min: 0,
