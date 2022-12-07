@@ -7,7 +7,9 @@
 	</div>
 	<div>
 		<div><%= pokemon.nickname %></div>
-		<div><%= pokemon.type %></div>
+		<div><% pokemon.types.forEach(type => { %>
+		 	<div><%= type %></div>
+		<% }) %></div>
 		<div><%= pokemon.nature %></div>
 		<div><%= pokemon.trainer %></div>
 	</div>

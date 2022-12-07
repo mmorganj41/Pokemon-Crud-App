@@ -8,11 +8,10 @@ const pokemonSchema = new Schema(
 			required: true,
 		}, 		
 		nickname: String,
-		type: {
+		types: [{
 			type: String,
-			required: true,
 			enum: ["normal", "fighting","flying","poison","ground","rock","bug","ghost", "steel", "fire", "water", "grass", "electric", "psychic", "ice", "dragon", "dark"],
-		},
+		}],
 		moves: [{type: Schema.Types.ObjectId, ref: 'Move'}],
 		experience: {
 			type: Number,

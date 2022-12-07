@@ -55,7 +55,7 @@ async function create(req, res, next) {
 		const pokemon = {
 			name: pokemonQuery.data.name,	
 			nickname: req.body.nickname,
-			type: pokemonQuery.data.types[0].type.name,
+			types: pokemonQuery.data.types.map(type => type.type.name),
 			experience: 0,
 			image: imageGen(pokemonQuery.data),
 			hp: statGen(pokemonQuery.data, 0),
