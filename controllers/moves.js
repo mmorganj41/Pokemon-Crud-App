@@ -22,6 +22,7 @@ async function create(req, res, next) {
 			statchange: moveData.data.stat_changes,
 			info: moveData.data.effect_entries[0].effect,
 			pokemon: req.params.id,
+			meta: moveData.data.meta,
 		};
 
 		await Move.create(move);

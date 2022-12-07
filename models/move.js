@@ -11,7 +11,7 @@ const moveSchema = new Schema(
 		type: {
 			type: String,
 			required: true,
-			enum: ["normal", "fighting","flying","poison","ground","rock","bug","ghost", "steel", "fire", "water", "grass", "electric", "psychic", "ice", "dragon", "dark"],
+			enum: ["normal", "fighting","flying","poison","ground","rock","bug","ghost", "steel", "fire", "water", "grass", "electric", "psychic", "ice", "dragon", "dark", "fairy"],
 		},
 		damageClass: {
 			type: String,
@@ -33,6 +33,7 @@ const moveSchema = new Schema(
 			required: true,
 		},
 		statchange: Object,
+		meta: Object,
 		info: String,
 		pokemon: {type: Schema.Types.ObjectId, ref: 'Pokemon'},
 	}

@@ -10,7 +10,7 @@ const pokemonSchema = new Schema(
 		nickname: String,
 		types: [{
 			type: String,
-			enum: ["normal", "fighting","flying","poison","ground","rock","bug","ghost", "steel", "fire", "water", "grass", "electric", "psychic", "ice", "dragon", "dark"],
+			enum: ["normal", "fighting","flying","poison","ground","rock","bug","ghost", "steel", "fire", "water", "grass", "electric", "psychic", "ice", "dragon", "dark", "fairy"],
 		}],
 		experience: {
 			type: Number,
@@ -18,10 +18,9 @@ const pokemonSchema = new Schema(
 			default: 0,
 			required: true,
 		},
-		image: {
+		images: [{
 			type: String,
-			required: true,
-		},
+		}],
 		hp: {
 			type: Number,
 			min: 0,

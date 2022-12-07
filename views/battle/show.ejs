@@ -1,0 +1,8 @@
+<%- include('../partials/header') %>
+<h1>Battle!</h1>
+<div id="battleground">
+	<div id="opponentpokemon"><div class="battlesprite"><img src="<%= opponent.images[0]%>" alt="opponent" ></div></div>
+	<div id="userpokemon"><div class="battlesprite"><img src="<%= pokemon.images[1]%>" alt="pokemon" ></div></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<%- include('../partials/footer') %>

@@ -133,3 +133,39 @@ a:visited {
 .release {
 	margin: 50px;
 }
+
+.battlesprite {
+	animation: battleidle 2.25s linear infinite;
+}
+
+#battleground {
+	background-image: url('../images/pokebattlebackground.jpg');
+	background-repeat: no-repeat;
+	background-size: contain;
+	width: 680px;
+	height: 383px;
+	padding-top: 100px;
+	padding-bottom: 25px;
+}
+
+#opponentpokemon {
+	display: flex;
+	justify-content: flex-end;
+	margin-right: 160px;
+	margin-top: 40px;
+}
+
+#userpokemon {
+	display: flex;
+	margin-left: 190px;
+}
+
+@keyframes battleidle {
+    0% {
+		transform: translateX(-.2em) rotate(-5deg);
+	} 50% {
+		transform: translateX(.2em) rotate(5deg);
+	} 100% {
+		transform: translateX(-.2em) rotate(-5deg);
+	}
+}

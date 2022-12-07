@@ -90,7 +90,7 @@ async function create(req, res, next) {
 			nickname: req.body.nickname,
 			types: pokemonQuery.data.types.map(type => type.type.name),
 			experience: 0,
-			image: imageGen(pokemonQuery.data),
+			images: imageGen(pokemonQuery.data),
 			hp: statGen(pokemonQuery.data, 0),
 			attack: statGen(pokemonQuery.data, 1),
 			defense: statGen(pokemonQuery.data, 2),
@@ -125,9 +125,9 @@ async function create(req, res, next) {
 	function imageGen(query){
 		const randomNumber = Math.floor(Math.random()*1000);
 		if (randomNumber === 0) {
-			return query.sprites.front_shiny;
+			return [query.sprites.front_shiny, query.sprites.back_shiny];
 		} else {
-			return query.sprites.front_default;
+			return [query.sprites.front_default, query.sprites.back_default];
 		}
 	}
 }
