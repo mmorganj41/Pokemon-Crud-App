@@ -1,5 +1,8 @@
 // Constants
 
+const playerPokemon = {};
+const opponentPokemon = {};
+
 const moveDamage = {
 	normal: {
 		rock: .5,
@@ -56,6 +59,7 @@ const moveDamage = {
 	}
 }
 
+
 // Global Variables
 
 // Dom elements
@@ -66,8 +70,11 @@ const moveDamage = {
 
 // Main Functions
 
+init();
+
 function init() {
 
+	render();
 }
 
 function render() {
