@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const passport = require('passport');
 const methodOverride = require('method-override');
+const publicPath = path.join(__dirname, 'public');
 
 const indexRouter = require('./routes/index');
 const pokemonRouter = require('./routes/pokemon');
@@ -28,18 +29,23 @@ require('./config/passport');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+app.use(express.static(publicPath));
+
 app.use(methodOverride('_method'));
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 // mount the session middleware
+
+
+
 app.use(session({
   secret: process.env.SECRET,
   resave: false,
   saveUninitialized: true
-}));
+}))
+
 
 app.use(passport.initialize());
 app.use(passport.session());

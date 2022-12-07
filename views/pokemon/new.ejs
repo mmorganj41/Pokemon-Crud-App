@@ -1,0 +1,16 @@
+<%- include('../partials/header') %>
+
+	<h1>Catch a Pokemon</h1>
+	<form action="/pokemon/create" method="post">
+		<label>Name</label>
+		<select name="name">
+			<% pokemon.forEach(p => { %>
+				<option value="<%= p.url %> "><%= p.name %> </option>
+			<% }) %>
+		</select>
+		<label>Nickname</label>
+		<input type="text" name="nickname">
+		<input type="submit" value="Catch!">
+	</form>
+
+<%- include('../partials/footer') %>

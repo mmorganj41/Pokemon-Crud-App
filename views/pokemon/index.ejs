@@ -1,34 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<%- include('../partials/stylesheet') %>
-	<title>Document</title>
-</head>
-<body>
-	<%- include('../partials/header') %>
-	<main>
-		<h1>Pokemon List</h1>
-		<table id="pokemonlist">
-			<tr class="headers">
-				<th>Pokemon</th>
-				<th>Image</th>
-				<th>Nickname</th>
-				<th>Level</th>
-				<th>Trainer</th>
+<%- include('../partials/header') %>
+
+	<h1>Pokemon List</h1>
+	<table id="pokemonlist">
+		<tr class="headers">
+			<th>Pokemon</th>
+			<th>Image</th>
+			<th>Nickname</th>
+			<th>Level</th>
+			<th>Trainer</th>
+		</tr>
+		<% pokemon.forEach(p => { %>
+			<tr>
+				<td><%= p.name %></td>
+				<td><img src="<%= p.image %> " alt="sprite"></td>
+				<td><%= p.nickname %></td>
+				<td><%= p.experience %> </td>
+				<td><%= p.trainer %> </td>
 			</tr>
-			<% pokemon.forEach(p => { %>
-				<tr>
-					<td><%= p.name %></td>
-					<td><img src="<%= p.image %> " alt="sprite"></td>
-					<td><%= p.nickname %></td>
-					<td><%= p.experience %> </td>
-					<td><%= p.trainer %> </td>
-				</tr>
-			<% }) %>
-		</div>
-	</main>
-</body>
-</html>
+		<% }) %>
+	</div>
+
+<%- include('../partials/footer') %>
