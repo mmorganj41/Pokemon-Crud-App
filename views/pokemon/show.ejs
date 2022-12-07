@@ -11,7 +11,7 @@
 	</div>
 	<div><h3><%= pokemon.name[0].toUpperCase() + pokemon.name.substring(1, pokemon.name.length) %></h3>
 		<div><div>Nickname:&nbsp;</div><div><%= pokemon.nickname %></div></div>
-		<div><div>Level:&nbsp;</div><div><%= pokemon.level %></div></div>
+		<div><div>Level:&nbsp;</div><div><%= pokemon.level %> (<%= pokemon.experience %>)</div></div>
 		<div><div>Type:&nbsp;</div><div><% pokemon.types.forEach(type => { %>
 		 	<div><%= type %></div>
 		<% }) %></div></div>

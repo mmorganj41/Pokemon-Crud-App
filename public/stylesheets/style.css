@@ -143,7 +143,6 @@ a:visited {
 	background-repeat: no-repeat;
 	background-size: contain;
 	width: 680px;
-	height: 383px;
 	padding-top: 100px;
 	padding-bottom: 25px;
 }
@@ -158,6 +157,14 @@ a:visited {
 #userpokemon {
 	display: flex;
 	margin-left: 190px;
+}
+
+#battleactions {
+	background-color: rgb(204, 204, 204);
+	border: black solid 1px;
+	border-radius: 10px;
+	flex-basis: auto;
+	padding: 25px;
 }
 
 @keyframes battleidle {
