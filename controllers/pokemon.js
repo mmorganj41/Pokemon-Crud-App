@@ -1,4 +1,5 @@
 const Pokemon = require('../models/pokemon');
+const dataFunctions = require('../config/datafunctions');
 const axios = require('axios');
 const pokeAPIURL = "https://pokeapi.co/api/v2/";
 
@@ -34,10 +35,33 @@ async function show(req, res, next) {
 		const pokemon = await Pokemon.findById(req.params.id);
 		console.log(pokemon);
 
+		let pokemonLevel = dataFunctions.pokemonLevel(pokemon.experience);
+
+		pokemon.level = pokemonLevel;
+
+		const pokemonQuery = await axios({
+			method: 'get',
+			url: `${pokeAPIURL}pokemon/${pokemon.name}`,
+	  		headers: {'accept-encoding': 'json'},
+		});
+
+		const moveOptions = pokemonQuery.data.moves.reduce((filtered, moveData) => {
+			const learnMethod = moveData.version_group_details[0].move_learn_method.name;
+			const levelLearned = moveData.version_group_details[0].level_learned_at;
+	
+			if (levelLearned <= pokemonLevel && (learnMethod === 'egg' || learnMethod === 'level-up')) {
+				filtered.push(moveData.move);
+			}
+			return filtered;
+		}, [])
+
+		pokemon.moveOptions = moveOptions;
+
+		
 		res.render('pokemon/show', {title: 'Pokemon', pokemon});
 	} catch(err) {
 		console.log(err);
-		res.redirecT('/pokemon');
+		res.redirect('/pokemon');
 	}	
 	
 }
@@ -76,27 +100,29 @@ async function create(req, res, next) {
 		console.log(err);
 		res.send('ERROR check terminal');
 	}
-}
 
-function statGen(query, num){
-	const direction = (Math.round(Math.random())) ? 1 : -1;
-	const stat = query.stats[num].base_stat 
-	return stat + direction * Math.floor(Math.random()*.1*stat)
-}
-
-function natureGen(){
-	const natures = ["hardy", "bold", "modest", "calm", "timid", "lonely", "docile", "mild", "gentle", "hasty", "adamant", "impish", "bashful", "careful", "rash", "jolly", "naughty", "lax", "quirky", "naive"];
-	return natures[Math.floor(Math.random()*natures.length)];
-}
-
-function imageGen(query){
-	const randomNumber = Math.floor(Math.random()*1000);
-	if (randomNumber === 0) {
-		return query.sprites.front_shiny;
-	} else {
-		return query.sprites.front_default;
+	function statGen(query, num){
+		const direction = (Math.round(Math.random())) ? 1 : -1;
+		const stat = query.stats[num].base_stat 
+		return stat + direction * Math.floor(Math.random()*.1*stat)
+	}
+	
+	function natureGen(){
+		const natures = ["hardy", "bold", "modest", "calm", "timid", "lonely", "docile", "mild", "gentle", "hasty", "adamant", "impish", "bashful", "careful", "rash", "jolly", "naughty", "lax", "quirky", "naive"];
+		return natures[Math.floor(Math.random()*natures.length)];
+	}
+	
+	function imageGen(query){
+		const randomNumber = Math.floor(Math.random()*1000);
+		if (randomNumber === 0) {
+			return query.sprites.front_shiny;
+		} else {
+			return query.sprites.front_default;
+		}
 	}
 }
+
+
 
 module.exports = {
 	index,

@@ -7,6 +7,7 @@
 	</div>
 	<div>
 		<div><%= pokemon.nickname %></div>
+		<div><%= pokemon.level %> </div>
 		<div><% pokemon.types.forEach(type => { %>
 		 	<div><%= type %></div>
 		<% }) %></div>
@@ -20,6 +21,16 @@
 		<div><%= pokemon.speed %></div>
 		<div><%= pokemon.specialAttack %></div>
 		<div><%= pokemon.specialDefense %></div>
+	</div>
+	<div>
+		<div></div>
+		<form action="" method="post">
+			<select name="name">
+				<% pokemon.moveOptions.forEach(m => { %>
+					<option value="<%= m.url %>"><%= m.name %> </option>
+				<% }) %>
+			</select>
+		</form>
 	</div>
 </div>
 
