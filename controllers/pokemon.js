@@ -29,8 +29,17 @@ async function newPokemon(req, res, next) {
 	
 }
 
-function show(req, res, next) {
-	res.render('pokemon/show', {title: 'Individual Pokemon'});
+async function show(req, res, next) {
+	try {
+		const pokemon = await Pokemon.findById(req.params.id);
+		console.log(pokemon);
+
+		res.render('pokemon/show', {title: 'Pokemon', pokemon});
+	} catch(err) {
+		console.log(err);
+		res.redirecT('/pokemon');
+	}	
+	
 }
 
 async function create(req, res, next) {

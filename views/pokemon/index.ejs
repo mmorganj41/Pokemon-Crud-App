@@ -11,7 +11,7 @@
 		</tr>
 		<% pokemon.forEach(p => { %>
 			<tr>
-				<td><%= p.name %></td>
+				<td><a href="/pokemon/<%= p._id %>"><%= p.name %></a></td>
 				<td><img src="<%= p.image %> " alt="sprite"></td>
 				<td><%= p.nickname %></td>
 				<td><%= p.experience %> </td>
