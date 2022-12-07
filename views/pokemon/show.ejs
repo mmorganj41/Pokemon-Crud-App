@@ -1,3 +1,24 @@
 <%- include('../partials/header') %>
+<h1>Pokemon</h1>
+<div>
+	<div>
+		<div><%= pokemon.name %></div>
+		<div><img src="<%= pokemon.image %>" alt="<%= pokemon.image %>"></div>
+	</div>
+	<div>
+		<div><%= pokemon.nickname %></div>
+		<div><%= pokemon.type %></div>
+		<div><%= pokemon.nature %></div>
+		<div><%= pokemon.trainer %></div>
+	</div>
+	<div>
+		<div><%= pokemon.hp %></div>
+		<div><%= pokemon.attack %></div>
+		<div><%= pokemon.defense %></div>
+		<div><%= pokemon.speed %></div>
+		<div><%= pokemon.specialAttack %></div>
+		<div><%= pokemon.specialDefense %></div>
+	</div>
+</div>
 
-<%- include('../partials/footer') %>
+<%- include('../partials/footer') %>	
