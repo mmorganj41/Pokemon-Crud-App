@@ -27,13 +27,15 @@
 			<% pokemon.moves.forEach(move => { %>
 				<div class="moves">
 					<div><%= move.name %>&nbsp;</div>
-					<form action="/moves/<%= move._id%>?_method=DELETE" method="post" class="delete">
-						<input type="submit" value="X">
-					</form>
+					<% if (user?._id?.equals(pokemon.user)) { %>
+						<form action="/moves/<%= move._id%>?_method=DELETE" method="post" class="delete">
+							<input type="submit" value="X">
+						</form>
+					<% } %>
 				</div>
 			<% }) %>
 		</div>
-		<% if (pokemon.moves.length < 6) { %>
+		<% if ((pokemon.moves.length < 6) && (user?._id?.equals(pokemon.user))) { %>
 			<form action="/pokemon/<%= pokemon._id %>/moves" method="post">
 				<select name="url">
 					<% pokemon.moveOptions.forEach(m => { %>
