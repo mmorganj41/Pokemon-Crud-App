@@ -132,11 +132,24 @@ async function create(req, res, next) {
 	}
 }
 
+async function deletePokemon(req, res, next) {
+	try {
+		await Move.remove({pokemon:req.params.id});
 
+		await Pokemon.findByIdAndDelete(req.params.id);
+
+		res.redirect(`/pokemon/}`);
+
+	} catch(err) {
+		console.log(err);
+		res.send('error deleting pokemon');
+	}
+}
 
 module.exports = {
 	index,
 	new: newPokemon,
 	show,
 	create,
+	delete: deletePokemon,
 }

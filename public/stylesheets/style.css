@@ -122,6 +122,14 @@ nav a.active {
 	margin: 25px;
 }
 
+a {
+	color:aqua
+}
+
 a:visited {
 	color:#04AA6D;
+}
+
+.release {
+	margin: 50px;
 }

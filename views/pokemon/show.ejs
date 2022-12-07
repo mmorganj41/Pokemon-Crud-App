@@ -1,5 +1,10 @@
 <%- include('../partials/header') %>
 <h1>Pokemon</h1>
+<% if (user?._id?.equals(pokemon.user)) { %>
+	<form action="/pokemon/<%= pokemon._id%>/battle">
+		<input type="submit" value="Battle an Opponent">
+	</form>
+<% } %>
 <div id="pokemonshow">
 	<div id="sprite">
 		<div><img src="<%= pokemon.image %>" alt="<%= pokemon.image %>"></div>
@@ -48,5 +53,11 @@
 		<% } %>
 	</div>
 </div>
+<br />
+<% if (user?._id?.equals(pokemon.user)) { %>
+	<form onsubmit="return confirm('Do you really want to get rid of your pokemon forever?');" action="/pokemon/<%= pokemon._id%>?_method=DELETE" method="post" class="release">
+		<input type="submit" value="Release This Pokemon">
+	</form>
+<% } %>
 
 <%- include('../partials/footer') %>	
