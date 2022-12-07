@@ -1,37 +1,38 @@
 <%- include('../partials/header') %>
 <h1>Pokemon</h1>
 <div id="pokemonshow">
-	<div>
-		<div><h3><%= pokemon.name[0].toUpperCase() + pokemon.name.substring(1, pokemon.name.length) %></h3></div>
+	<div id="sprite">
 		<div><img src="<%= pokemon.image %>" alt="<%= pokemon.image %>"></div>
 	</div>
-	<div><h3>Info:</h3>
-		<div><%= pokemon.nickname %></div>
-		<div>Level: <%= pokemon.level %> </div>
-		<div>Type: <% pokemon.types.forEach(type => { %>
+	<div><h3><%= pokemon.name[0].toUpperCase() + pokemon.name.substring(1, pokemon.name.length) %></h3>
+		<div><div>Nickname:&nbsp;</div><div><%= pokemon.nickname %></div></div>
+		<div><div>Level:&nbsp;</div><div><%= pokemon.level %></div></div>
+		<div><div>Type:&nbsp;</div><div><% pokemon.types.forEach(type => { %>
 		 	<div><%= type %></div>
-		<% }) %></div>
-		<div>Nature: <%= pokemon.nature %></div>
-		<div>Trainer: <%= pokemon.trainer %></div>
+		<% }) %></div></div>
+		<div><div>Nature:&nbsp;</div><div><%= pokemon.nature %></div></div>
+		<div><div>Trainer:&nbsp;</div><div><%= pokemon.trainer %></div></div>
 	</div>
 	<div><h3>Stats:</h3>
-		<div>HP: <%= pokemon.hp %></div>
-		<div>ATK: <%= pokemon.attack %></div>
-		<div>DEF: <%= pokemon.defense %></div>
-		<div>SPD: <%= pokemon.speed %></div>
-		<div>SATK: <%= pokemon.specialAttack %></div>
-		<div>SDEF: <%= pokemon.specialDefense %></div>
+		<div><div>HP:&nbsp;</div><div><%= pokemon.hp %></div></div>
+		<div><div>ATK:&nbsp;</div><div><%= pokemon.attack %></div></div>
+		<div><div>DEF:&nbsp;</div><div><%= pokemon.defense %></div></div>
+		<div><div>SPD:&nbsp;</div><div><%= pokemon.speed %></div></div>
+		<div><div>SATK:&nbsp;</div><div><%= pokemon.specialAttack %></div></div>
+		<div><div>SDEF:&nbsp;</div><div><%= pokemon.specialDefense %></div></div>
 	</div>
 	<div><h3>Moves:</h3>
-		<div>
+		<div class="moves">
 			<% pokemon.moves.forEach(move => { %>
-				<div class="moves">
-					<div><%= move.name %>&nbsp;</div>
-					<% if (user?._id?.equals(pokemon.user)) { %>
-						<form action="/moves/<%= move._id%>?_method=DELETE" method="post" class="delete">
-							<input type="submit" value="X">
-						</form>
-					<% } %>
+				<div>
+					<div><%= move.name %></div>
+					<div>
+						<% if (user?._id?.equals(pokemon.user)) { %>
+							<form action="/moves/<%= move._id%>?_method=DELETE" method="post" class="delete">
+								<input type="submit" value="X">
+							</form>
+						<% } %>
+					</div>
 				</div>
 			<% }) %>
 		</div>
