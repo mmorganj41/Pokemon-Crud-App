@@ -1,5 +1,6 @@
 const { default: axios } = require('axios');
 const Move = require('../models/move');
+const dataFunctions = require('../config/datafunctions');
 
 async function create(req, res, next) {
 	try {
@@ -44,8 +45,19 @@ async function deleteMove(req, res, next) {
 	}
 }
 
+async function show(req, res, next) {
+	try {
+		const move = await Move.findById(req.params.id);
+		move.level = dataFunctions.moveLevel(move.experience);
+		res.render('moves/show', {title: 'Move', move});
+	} catch(err) {
+		console.log(err);
+		res.send('Error showing move');
+	}
+}
 
 module.exports = {
 	create,
 	delete: deleteMove,
+	show,
 }

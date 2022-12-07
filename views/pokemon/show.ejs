@@ -30,7 +30,7 @@
 		<div class="moves">
 			<% pokemon.moves.forEach(move => { %>
 				<div>
-					<div><%= move.name %></div>
+					<div><a href="/moves/<%= move._id %>"><%= move.name %></a></div>
 					<div>
 						<% if (user?._id?.equals(pokemon.user)) { %>
 							<form action="/moves/<%= move._id%>?_method=DELETE" method="post" class="delete">
