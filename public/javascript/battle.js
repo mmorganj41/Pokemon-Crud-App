@@ -59,6 +59,83 @@ const moveDamage = {
 		flying: 2,
 		dragon: 2,
 		steel: .5,
+	},
+	fighting: {
+		normal: 2,
+		ice: 2,
+		poison: .5,
+		flying: .5,
+		psychic: .5,
+		bug: .5,
+		rock: 2,
+		ghost: 0,
+		dark: 2,
+		steel: 2,
+	},
+	poison: {
+		grass: 2,
+		poison: .5,
+		ground: .5,
+		rock: .5,
+		ghost: .5,
+		steel: 0,
+		fairy: 2,
+	},
+	ground: {
+		fire: 2,
+		electric: 2,
+		grass: .5,
+		poison: 2,
+		flying: 0,
+		bug: .5,
+		rock: 2,
+		steel: 2,
+	},
+	flying: {
+		electric: .5,
+		grass: 2,
+		fighting: 2,
+		bug: 2,
+		rock: .5,
+		steel: .5,
+	},
+	psychic: {
+		fighting: 2,
+		poison: 2,
+		psychic: .5,
+		dark: 0,
+		steel: .5,
+	}
+}
+
+const struggle = {
+	name: "struggle",
+	accuracy: null,
+	type: "normal",
+	damageClass: "physical",
+	power: 50,
+	pp: Infinity,
+	target: "random-opponent",
+	statchange: [],
+	meta: {
+		ailment: {
+			name: "none",
+			url: "https://pokeapi.co/api/v2/move-ailment/0/"
+		},
+		ailment_chance: 0,
+		category: {
+			name: "damage",
+			url: "https://pokeapi.co/api/v2/move-category/0/",
+		},
+		crit_rate: 0,
+		drain: 0,
+		flinch_chance: 0,
+		healing: -25,
+		max_hits: null,
+		max_turns: null,
+		min_hits: null,
+		min_turns: null,
+		stat_chance: 0,
 	}
 }
 
@@ -116,7 +193,10 @@ async function getPokemonInfo(object, id) {
 
 		object.moves = moves.data;
 		object.moves.forEach((move, index) => {
-			object.moves[index].level = moveLevel(move.experience);
+			let level = moveLevel(move.experience);
+			object.moves[index].level = level;
+			object.moves[index].power = Math.floor(object.moves[index].power*(1+level*.03));
+			object.moves[index].pp = Math.floor(object.moves[index].pp*(1+level*.05));
 		})
 
 	} catch(err) {

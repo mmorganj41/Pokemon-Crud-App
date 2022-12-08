@@ -138,6 +138,10 @@ a:visited {
 	animation: battleidle 2.25s linear infinite;
 }
 
+.battlesprite img{
+	transform: scale(1.5);
+}
+
 #battleground {
 	background-image: url('../images/pokebattlebackground.jpg');
 	background-repeat: no-repeat;
