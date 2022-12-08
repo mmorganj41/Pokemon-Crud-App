@@ -139,22 +139,6 @@ const struggle = {
 	}
 }
 
-const natureBoost = {
-	attack: ['lonely', 'brave', 'adamant', 'naughty'],
-	defense: ['bold', 'relaxed', 'impish', 'lax'],
-	speed: ['timid', 'hasty', 'jolly', 'naive'],
-	specialAttack: ['modest', 'mild', 'quiet', 'rash'],
-	specialDefense: ['calm', 'gentle', 'sassy', 'careful'],
-}
-
-const natureDrop = {
-	attack: ['bold', 'timid', 'modest', 'calm'],
-	defense: ['lonely', 'hasty', 'mild', 'gentle'],
-	speed: ['brave', 'relaxed', 'quiet', 'sassy'],
-	specialAttack: ['adamant', 'impish', 'jolly', 'careful'],
-	specialDefense: ['naughty', 'lax', 'naive', 'rash'],
-}
-
 const stats = ['attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
 
 // Global Variables
@@ -215,8 +199,7 @@ async function getPokemonInfo(object, id) {
 		object.level = pokemonLevel(pokemon.data.experience);
 		
 		stats.forEach(stat => {
-			let value = calculateStat(stat, pokemon.data[stat], object.level, pokemon.data.nature);
-			object[stat] = [value, 0];
+			object[stat] = [calculateStat(pokemon.data[stat], object.level), 0];
 		})
 
 		let hp = calculateHealth(pokemon.data.hp, object.level);
@@ -224,7 +207,7 @@ async function getPokemonInfo(object, id) {
 		object.hp = [hp, hp];
 		object.accuracy = 0;
 		object.evasion = 0;
-		object.status = null;
+		object.status = [null, null];
 
 		object.moves = moves.data;
 		object.moves.forEach((move, index) => {
@@ -250,15 +233,8 @@ async function getPokemonInfo(object, id) {
 		return Math.round((health*(level+1))/100 + level + 10);
 	}
 
-	function calculateStat(stat, amount, level, nature) {
-		let output = (amount*(level+1))/100 + 5;
-		if (natureBoost[stat].includes(nature)) {
-			return Math.round(output * 1.1);
-		} else if (natureDrop[stat].includes(nature)) {
-			return Math.round(output * .9);
-		} else {
-			return Math.round(output);
-		}
+	function calculateStat(amount, level) {
+		return Math.round((amount*(level+1))/100 + 5);
 	}
 }
 

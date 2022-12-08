@@ -4,6 +4,25 @@ const dataFunctions = require('../config/datafunctions');
 const axios = require('axios');
 const pokeAPIURL = "https://pokeapi.co/api/v2/";
 
+const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
+const natureBoost = {
+	attack: ['lonely', 'brave', 'adamant', 'naughty'],
+	defense: ['bold', 'relaxed', 'impish', 'lax'],
+	speed: ['timid', 'hasty', 'jolly', 'naive'],
+	specialAttack: ['modest', 'mild', 'quiet', 'rash'],
+	specialDefense: ['calm', 'gentle', 'sassy', 'careful'],
+	hp: [],
+}
+
+const natureDrop = {
+	attack: ['bold', 'timid', 'modest', 'calm'],
+	defense: ['lonely', 'hasty', 'mild', 'gentle'],
+	speed: ['brave', 'relaxed', 'quiet', 'sassy'],
+	specialAttack: ['adamant', 'impish', 'jolly', 'careful'],
+	specialDefense: ['naughty', 'lax', 'naive', 'rash'],
+	hp: [],
+}
+
 async function index(req, res, next) {
 	try {
 		const pokemon = await Pokemon.find({})
@@ -38,7 +57,6 @@ async function newPokemon(req, res, next) {
 async function show(req, res, next) {
 	try {
 		const pokemon = await Pokemon.findById(req.params.id);
-		console.log(pokemon);
 
 		let pokemonLevel = dataFunctions.pokemonLevel(pokemon.experience);
 
@@ -91,16 +109,12 @@ async function create(req, res, next) {
 			types: pokemonQuery.data.types.map(type => type.type.name),
 			experience: 0,
 			images: imageGen(pokemonQuery.data),
-			hp: statGen(pokemonQuery.data, 0),
-			attack: statGen(pokemonQuery.data, 1),
-			defense: statGen(pokemonQuery.data, 2),
-			speed: statGen(pokemonQuery.data, 5),
-			specialAttack: statGen(pokemonQuery.data, 3),
-			specialDefense: statGen(pokemonQuery.data, 4),
 			nature: natureGen(),
 			user: req.user._id,
 			trainer: req.user.name,
 		};
+
+		stats.forEach(stat => pokemon[stat] = statGen(pokemonQuery.data, stat, pokemon.nature));
 
 		Pokemon.create(pokemon);
 
@@ -111,10 +125,11 @@ async function create(req, res, next) {
 		res.send('ERROR check terminal');
 	}
 
-	function statGen(query, num){
+	function statGen(query, name, nature){
 		const direction = (Math.round(Math.random())) ? 1 : -1;
-		const stat = query.stats[num].base_stat 
-		return stat + direction * Math.floor(Math.random()*.1*stat)
+		const boost = 1 + (natureBoost[name].includes(nature) ? .1 : 0) - (natureDrop[name].includes(nature) ? .1 : 0);
+		const stat = query.stats.find(e => e.stat.name === name.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)).base_stat;
+		return Math.round((stat + direction * Math.random()*.2*stat)*boost);	
 	}
 	
 	function natureGen(){
