@@ -37,6 +37,7 @@ const moveSchema = new Schema(
 		meta: Object,
 		info: String,
 		pokemon: {type: Schema.Types.ObjectId, ref: 'Pokemon'},
+		priority: Number
 	}
 )
 

@@ -1,0 +1,48 @@
+<div id="pokemonshow">
+	<div id="sprite">
+		<div><img src="<%= pokemon.images[0] %>" alt="<%= pokemon.images[0] %>"></div>
+	</div>
+	<div><h3><%= pokemon.name[0].toUpperCase() + pokemon.name.substring(1, pokemon.name.length) %></h3>
+		<div><div>Nickname:&nbsp;</div><div><%= pokemon.nickname %></div></div>
+		<div><div>Level:&nbsp;</div><div><%= pokemon.level %> (<%= pokemon.experience %>)</div></div>
+		<div><div>Type:&nbsp;</div><div id="types"><% pokemon.types.forEach(type => { %>
+		 	<div><%= type %></div>
+		<% }) %></div></div>
+		<div><div>Nature:&nbsp;</div><div><%= pokemon.nature %></div></div>
+		<div><div>Trainer:&nbsp;</div><div><%= pokemon.trainer %></div></div>
+	</div>
+	<div><h3>Stats:</h3>
+		<div><div>HP:&nbsp;</div><div><%= pokemon.hp %></div></div>
+		<div><div>ATK:&nbsp;</div><div><%= pokemon.attack %></div></div>
+		<div><div>DEF:&nbsp;</div><div><%= pokemon.defense %></div></div>
+		<div><div>SPD:&nbsp;</div><div><%= pokemon.speed %></div></div>
+		<div><div>SATK:&nbsp;</div><div><%= pokemon.specialAttack %></div></div>
+		<div><div>SDEF:&nbsp;</div><div><%= pokemon.specialDefense %></div></div>
+	</div>
+	<div><h3>Moves:</h3>
+		<div class="moves">
+			<% pokemon.moves.forEach(move => { %>
+				<div>
+					<div><a href="/moves/<%= move._id %>"><%= move.name %></a></div>
+					<div>
+						<% if (user?._id?.equals(pokemon.user)) { %>
+							<form action="/moves/<%= move._id%>?_method=DELETE" method="post" class="delete">
+								<input type="submit" value="X">
+							</form>
+						<% } %>
+					</div>
+				</div>
+			<% }) %>
+		</div>
+		<% if ((pokemon.moves.length < 6) && (user?._id?.equals(pokemon.user))) { %>
+			<form action="/pokemon/<%= pokemon._id %>/moves" method="post">
+				<select name="url">
+					<% pokemon.moveOptions.forEach(m => { %>
+						<option value="<%= m.url %>"><%= m.name %> </option>
+					<% }) %>
+				</select>
+				<input type="submit" value="Learn Move">
+			</form>
+		<% } %>
+	</div>
+</div>

@@ -25,6 +25,7 @@ async function create(req, res, next) {
 			pokemon: req.params.id,
 			meta: moveData.data.meta,
 			effectChance: moveData.data.effect_chance,
+			priority: moveData.data.priority,
 		};
 
 		await Move.create(move);

@@ -194,6 +194,7 @@ const struggle = {
 		stat_chance: 0,
 	},
 	effectChance: null,
+	priority: 0,
 }
 
 const stats = ['attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
@@ -226,13 +227,8 @@ battleController.addEventListener('click', messageProgression);
 
 // Callback Functions
 
-function messageProgression(event){
-	if (messages?.length > 0) {
-		message = messages.shift();
-		if (message.length === 1) {
-			action = "main";
-		}
-	} else if (!action) {
+function messageProgression(event){ 
+	if (!action) {
 		action = "main";
 	}
 
@@ -246,6 +242,13 @@ function messageProgression(event){
 		if (event.target.classList.contains('move')) {
 			action = null;
 			turn(event.target.classList[0]);
+		}
+	}
+
+	if (messages?.length > 0) {
+		message = messages.shift();
+		if (message.length === 1) {
+			action = "main";
 		}
 	}
 
@@ -277,21 +280,42 @@ function accEvadeMultiplier(stat) {
 
 function turn(playerMove) {
 	// speed comparison
+	const pokemonArray = [playerPokemon, opponentPokemon];
+	let opponentMove = aiSelect();
+	playerMove = playerPokemon.moves.find(move => move.name === playerMove);
+	
+	if (!playerMove.pp[0]) {
+		messages = ["That move is out of PP, select another."];
+		return;
+	} 
+
 	let firstmove;
+	if (playerMove)
 	if (playerPokemon.speed[0] === opponentPokemon.speed[0]) {
 		firstmove = Math.round(Math.random()) ? "player" : "opponent";
 		console.log('random'); 
 	} else {
 		firstmove = (playerPokemon.speed[0] > opponentPokemon.speed[0]) ? "player" : "opponent";
 	}
-
-	console.log(playerPokemon.speed, opponentPokemon.speed)
 	console.log(playerMove);
-	console.log(firstmove);
+	console.log(opponentMove);
+
+	playerMove.pp[0] -= 1;
+	opponentMove.pp[0] -= 1;
 }
 
 function move(attacker, move, defender) {
 
+}
+
+function aiSelect(){
+	const ppTotal = opponentPokemon.moves.reduce((sum, move) => sum + move.pp[0], 0);
+	if (ppTotal === 0 || opponentPokemon.moves.length === 0) {
+		return struggle;
+	} else {
+		const availableMoves = opponentPokemon.moves.filter(move => move.pp[0] > 0);
+		return availableMoves[Math.floor(Math.random*availableMoves.length)];
+	}
 }
 
 async function getPokemonInfo(object, id) {
@@ -418,9 +442,10 @@ function renderMoves() {
 
 			[moveEl, nameEl, ppEl].forEach(e => {
 				e.classList.add(move.name)
-				e.classList.add("move")
+				e.classList.add("move")				
 			});
 
+			if (move.pp[0] < 1) moveEl.style.color = "red";
 			nameEl.innerText = move.name;
 			ppEl.innerText = `${move.pp[0]}/${move.pp[1]}`
 
