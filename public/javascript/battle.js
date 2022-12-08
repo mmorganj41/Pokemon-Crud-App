@@ -300,7 +300,7 @@ function turn(playerMove) {
 			firstMove = (playerSpeed > opponentSpeed) ? "player" : "opponent";
 		}
 	} else {
-		firstMove = (playerMove.priority > opponentMovePriority) ? "player" : "opponent";
+		firstMove = (playerMove.priority > opponentMove.Priority) ? "player" : "opponent";
 	}
 
 	if (firstMove === 'player') {
@@ -392,7 +392,7 @@ async function getPokemonInfo(object, id) {
 
 		object.critRate = {
 			value: (pokemon.data.speed/4)/256,
-			state: 0,
+			stage: 0,
 		};
 		object.hp = [hp, hp];
 		object.accuracy = 0;

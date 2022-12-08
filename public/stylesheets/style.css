@@ -88,12 +88,37 @@ nav a.active {
 	display: grid;
 	grid-template-columns: auto auto;
 	gap: 50px;
+	border: black 2px solid;
+	padding: 25px;
+	padding-top: 0px;
+	background-color:rgb(58, 58, 58);
+	border-radius: 10px;
+}
+
+#battlebutton {
+	margin-bottom: 25px;
+}
+
+#sprite div {
+	background-color: white;
+	border-radius: 10px;
 }
 
 #pokemonshow > div > div{
+	background-color: white;
+	border-radius: 10px;
+	color: black;
+	padding: 5px;
+}
+
+#pokemonshow > div > div > div{
 	display: flex;
 	justify-content: space-between;
 	align-items: stretch;
+}
+
+#pokemonshow > div > div > div > div:first-child{
+	font-weight: 700;
 }
 
 #types {
@@ -113,6 +138,10 @@ nav a.active {
 	justify-content: space-between;
 }
 
+#movesform {
+	margin-top: 10px;
+}
+
 #sprite {
 	display: flex;
 	flex-direction: column;
@@ -124,12 +153,52 @@ nav a.active {
 	justify-content: space-between;
 }
 
+#opponents {
+	background-color:rgb(58, 58, 58);
+	border: black solid 2px;
+	border-radius: 10px;
+	padding: 25px;
+}
+
+#opponents table {
+	border-collapse: collapse;
+}
+
+#level {
+	text-align: right;
+}
+
+.opponentrows {
+	background-color: white;
+	color: black;
+}
+
+td {
+	padding-top:10px;
+	padding-bottom:10px;
+	padding-right:10px;   
+  }
+  
+  td:first-child {
+	padding-left:10px;
+	padding-right:0;
+  }
+
+.opponentrows table {
+	width: 100%;
+}
+
 #battle > div {
 	margin: 25px;
 }
 
+#statgrid {
+	display: grid;
+	grid-template-columns: repeat(6, 1fr);
+}
+
 a {
-	color:aqua
+	color:rgb(3, 0, 97)
 }
 
 a:visited {

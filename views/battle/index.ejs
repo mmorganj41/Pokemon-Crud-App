@@ -2,23 +2,23 @@
 	<h1>Battle an Opponent</h1>
 	<div id="battle">
 		<%- include('../partials/pokeshow') %>
-		<div>
+		<div id="opponents">
 			<table id="pokemonlist">
 				<tr class="headers">
-					<th>Pokemon</th>
-					<th>Level</th>
-					<th>Types</th>
-					<th>Stats</th>
+					<th><h3>Pokemon&nbsp;</h3></th>
+					<th><h3>Level</h3></th>
+					<th><h3>Types</h3></th>
+					<th><h3>Stats</h3></th>
 				</tr>
 				<% opponents.forEach(p => { %>
-					<tr>
+					<tr class="opponentrows">
 						<td><a href="/pokemon/<%= p._id %>"><%= p.name[0].toUpperCase() + p.name.substring(1, p.name.length) %></a></td>
-						<td><%= p.level %> </td>
+						<td id="level"><%= p.level %> </td>
 						<td><% p.types.forEach(type => { %>
 							<div><%= type %> </div>
 						<% }) %></td>
 						<td><table>
-							<tr>
+							<tr id="statgrid">
 								<th><%= p.hp %></th>
 								<th><%= p.attack %></th>
 								<th><%= p.defense %></th>
