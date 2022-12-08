@@ -32,6 +32,7 @@ const moveSchema = new Schema(
 			type: String,
 			required: true,
 		},
+		effectChance: Number,
 		statchange: Object,
 		meta: Object,
 		info: String,

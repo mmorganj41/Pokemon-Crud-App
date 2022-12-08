@@ -159,11 +159,43 @@ const stats = ['attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
 
 // Global Variables
 
+let gameOver
+let winner
+
 // Dom elements
 
 // Callback Functions
 
 // Helper Functions
+
+function stageMultipliers(stat) {
+	if (stat === 0) {
+		return 1;
+	} else if (stat < 0) {
+		return 2/(2+Math.abs(Math.max(stat, -6)));
+	} else {
+		return (2+Math.min(6,stat))/2;
+	}
+}
+
+function accEvadeMultiplier(stat) {
+	if (stat === 0) {
+		return 1;
+	} else if (stat < 0) {
+		return 3/(3+Math.abs(Math.max(stat, -6)));
+	} else {
+		return (3+Math.min(6,stat))/3;
+	}
+}
+
+
+function turn() {
+
+}
+
+function move(attacker, move, defender) {
+
+}
 
 async function getPokemonInfo(object, id) {
 	try {
@@ -190,6 +222,9 @@ async function getPokemonInfo(object, id) {
 		let hp = calculateHealth(pokemon.data.hp, object.level);
 
 		object.hp = [hp, hp];
+		object.accuracy = 0;
+		object.evasion = 0;
+		object.status = null;
 
 		object.moves = moves.data;
 		object.moves.forEach((move, index) => {
