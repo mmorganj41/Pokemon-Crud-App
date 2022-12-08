@@ -149,11 +149,16 @@ async function create(req, res, next) {
 
 async function deletePokemon(req, res, next) {
 	try {
+		const pokemon = await Pokemon.findById(req.params.id); 
+
+		console.log(req.user?._id == String(pokemon.user), pokemon.user, req.user?._id);
+		if (req.user?._id != String(pokemon.user)) return res.redirect(`/pokemon`);
+
 		await Move.remove({pokemon:req.params.id});
 
-		await Pokemon.findByIdAndDelete(req.params.id);
+		pokemon.remove();
 
-		res.redirect(`/pokemon/}`);
+		res.redirect(`/pokemon`);
 
 	} catch(err) {
 		console.log(err);

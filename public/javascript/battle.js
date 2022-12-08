@@ -281,7 +281,7 @@ function accEvadeMultiplier(stat) {
 
 function turn(playerMove) {
 	const pokemonArray = [playerPokemon, opponentPokemon];
-	playerMove = playerPokemon.moves.find(move => move.name === playerMove);
+	playerMove = playerPokemon.moves.find(move => move.name === playerMove) || struggle;
 	
 	if (!playerMove.pp[0]) {
 		messages = ["That move is out of PP, select another."];

@@ -7,7 +7,10 @@ const pokeAPIURL = "https://pokeapi.co/api/v2/";
 async function index(req, res, next){
 	try {
 		const pokemon = await Pokemon.findById(req.params.pokeid);
-		const opponents = await Pokemon.find({_id: {$ne: req.params.pokeid}})
+		
+		if (req.user?._id != String(pokemon.user)) return res.redirect(`/pokemon/${req.params.pokeid}`)
+
+		const opponents = await Pokemon.find({_id: {$ne: req.params.pokeid}});
 		const moves = await Move.find({pokemon: req.params.pokeid});
 
 		const pokemonQuery = await axios({
@@ -48,6 +51,9 @@ async function index(req, res, next){
 async function show(req, res, next) {
 	try {
 		const pokemon = await Pokemon.findById(req.params.pokeid);
+
+		if (req.user?._id != String(pokemon.user)) return res.redirect(`/pokemon/${req.params.pokeid}`)
+
 		const opponent = await Pokemon.findById(req.params.oppid);
 
 		const pokeMoves = await Move.find({pokemon: req.params.pokeid});
