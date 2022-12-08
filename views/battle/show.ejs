@@ -4,7 +4,7 @@
 	<div id="opponentpokemon">
 		<div class="info"> 
 			<div>
-				<div>
+				<div class="name">
 					<h3><%= (opponent.nickname) ? opponent.nickname : opponent.name %> </h3>
 				</div>
 				<div>
@@ -13,6 +13,7 @@
 			</div>
 			<div class="health-bar">
 				<div class="bar">
+					<div class="hp"></div>
 					<div class="hit"></div>
 				</div>
 			</div>
@@ -27,7 +28,7 @@
 		</div>
 		<div class="info"> 
 			<div>
-				<div>
+				<div class="name">
 					<h3><%= (pokemon.nickname) ? pokemon.nickname : pokemon.name %> </h3>
 				</div>
 				<div>
@@ -36,6 +37,7 @@
 			</div>
 			<div class="health-bar">
 				<div class="bar">
+					<div class="hp"></div>
 					<div class="hit"></div>
 				</div>
 			</div>
@@ -44,7 +46,6 @@
 </div>
 <div id="battleactions">
 	<div id="messagebox">
-		test
 	</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>

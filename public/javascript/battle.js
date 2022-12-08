@@ -206,6 +206,21 @@ let action
 
 // Dom elements
 
+const messageBoxEl = document.getElementById('messagebox');
+const opponentName = document.querySelector('#opponentpokemon .name');
+const opponentHealthbar = document.querySelector('#opponentpokemon .health-bar');
+const opponentHp = document.querySelector('#opponentpokemon .hp');
+const opponentSprite = document.querySelector('#opponentpokemon .battlesprite');
+const playerName = document.querySelector('#userpokemon .name');
+const playerLevel = document.querySelector('#userpokemon span');
+const playerHealthbar = document.querySelector('#userpokemon .health-bar');
+const playerHp =document.querySelector('#userpokemon .hp');
+const playerSprite = document.querySelector('#userpokemon .battlesprite');
+
+// event listeners
+
+
+
 // Callback Functions
 
 // Helper Functions
@@ -300,12 +315,24 @@ async function getPokemonInfo(object, id) {
 
 init();
 
-function init() {
-	getPokemonInfo(playerPokemon, playerId);
-	getPokemonInfo(opponentPokemon, opponentId);
+async function init() {
+	await getPokemonInfo(playerPokemon, playerId);
+	await getPokemonInfo(opponentPokemon, opponentId);
+
+	action = false;
+	message = `${opponentName.innerText} appeared.`
+
 	render();
 }
 
 function render() {
-	console.log(playerPokemon);
+	playerHp.innerText = `${playerPokemon.hp[0]} / ${playerPokemon.hp[1]}`;
+	opponentHp.innerText = `${opponentPokemon.hp[0]} / ${opponentPokemon.hp[1]}`;
+
+
+	if (action) {
+
+	} else {
+		messageBoxEl.innerText = message;
+	}
 }
