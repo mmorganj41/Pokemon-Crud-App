@@ -129,7 +129,7 @@ async function create(req, res, next) {
 		const direction = (Math.round(Math.random())) ? 1 : -1;
 		const boost = 1 + (natureBoost[name].includes(nature) ? .1 : 0) - (natureDrop[name].includes(nature) ? .1 : 0);
 		const stat = query.stats.find(e => e.stat.name === name.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)).base_stat;
-		return Math.round((stat + direction * Math.random()*.2*stat)*boost);	
+		return Math.round((stat + Math.random()*31 + direction * Math.random()*.2*stat)*boost);	
 	}
 	
 	function natureGen(){

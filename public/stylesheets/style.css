@@ -96,6 +96,12 @@ nav a.active {
 	align-items: stretch;
 }
 
+#types {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+}
+
 .moves {
 	flex-direction: column;
 	align-items: flex-start;

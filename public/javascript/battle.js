@@ -105,6 +105,62 @@ const moveDamage = {
 		psychic: .5,
 		dark: 0,
 		steel: .5,
+	},
+	bug: {
+		fire: .5,
+		grass: 2,
+		fighting: .5,
+		poison: .5,
+		flying: .5,
+		psychic: 2,
+		ghost: .5,
+		dark: 2,
+		steel: .5,
+		fairy: .5,
+	},
+	rock: {
+		fire: 2,
+		ice: 2,
+		fighting: .5,
+		ground: .5,
+		flying: 2,
+		bug: 2,
+		steel: .5,
+	},
+	ghost: {
+		normal: 0,
+		psychic: 2,
+		ghost: 2,
+		dark: .5,
+	},
+	dragon: {
+		dragon: 2,
+		steel: .5,
+		fairy: 0,
+	},
+	dark: {
+		fighting: .5,
+		psychic: 2,
+		ghost: 2,
+		dark: .5,
+		fairy: .5,
+	},
+	steel: {
+		fire: .5,
+		water: .5,
+		electric: .5,
+		ice: 2,
+		rock: 2,
+		steel: .5,
+		fairy: 2,
+	},
+	fairy: {
+		fire: .5,
+		fighting: 2,
+		ground: .5,
+		dragon: 2,
+		dark: 2,
+		steel: .5,
 	}
 }
 
@@ -145,6 +201,8 @@ const stats = ['attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
 
 let gameOver
 let winner
+let message
+let action
 
 // Dom elements
 
