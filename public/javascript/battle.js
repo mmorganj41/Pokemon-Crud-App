@@ -201,11 +201,12 @@ const stats = ['attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
 
 // Global Variables
 
-let gameOver
-let winner
-let messages
-let message
-let action
+let gameOver;
+let winner;
+let messages;
+let message;
+let action;
+let weather;
 
 // Dom elements
 
@@ -279,9 +280,7 @@ function accEvadeMultiplier(stat) {
 
 
 function turn(playerMove) {
-	// speed comparison
 	const pokemonArray = [playerPokemon, opponentPokemon];
-	let opponentMove = aiSelect();
 	playerMove = playerPokemon.moves.find(move => move.name === playerMove);
 	
 	if (!playerMove.pp[0]) {
@@ -289,23 +288,70 @@ function turn(playerMove) {
 		return;
 	} 
 
-	let firstmove;
-	if (playerMove)
-	if (playerPokemon.speed[0] === opponentPokemon.speed[0]) {
-		firstmove = Math.round(Math.random()) ? "player" : "opponent";
-		console.log('random'); 
-	} else {
-		firstmove = (playerPokemon.speed[0] > opponentPokemon.speed[0]) ? "player" : "opponent";
-	}
-	console.log(playerMove);
-	console.log(opponentMove);
+	let opponentMove = aiSelect();
 
-	playerMove.pp[0] -= 1;
-	opponentMove.pp[0] -= 1;
+	let firstMove;
+	let playerSpeed = playerPokemon.speed.value*stageMultipliers(playerPokemon.speed.state)*((playerPokemon.status.state === "paralysis") ? .5 : 1)
+	let opponentSpeed = opponentPokemon.speed.value*stageMultipliers(opponentPokemon.speed.state)*((playerPokemon.status.state === "paralysis") ? .5 : 1)
+	if (playerMove.priority === opponentMove.priority) {
+		if (playerSpeed === opponentSpeed) {
+			firstMove = Math.round(Math.random()) ? "player" : "opponent";
+		} else {
+			firstMove = (playerSpeed > opponentSpeed) ? "player" : "opponent";
+		}
+	} else {
+		firstMove = (playerMove.priority > opponentMovePriority) ? "player" : "opponent";
+	}
+
+	if (firstMove === 'player') {
+		bothMoves(playerPokemon, playerMove, opponentPokemon, opponentMove);
+	} else {
+		bothMoves(opponentPokemon, opponentMove, playerPokemon, playerMove);
+	}
+
+}
+
+function bothMoves(firstPokemon, firstMove, secondPokemon, secondMove) {
+	move(firstPokemon, firstMove, secondPokemon);
+
+	move(secondPokemon, secondMove, firstPokemon);
 }
 
 function move(attacker, move, defender) {
+	if (move.damageClass === "physical" || move.damageClass === "special") {
+		let burn = 1;
+		let attack;
+		let defense;
+		let random = (Math.random()*15+85)/100;
+		let critical = (Math.random() < attacker.critRate.value*(3**(move.meta.crit_rate+attacker.critRate.stage))) ? 1.5 : 1;
+		if (move.damageClass === "physical") {
+			if (attacker.status.state === "burn") burn = .5
+			if (critical === 1.5) {
+				attack = attacker.attack.value*stageMultipliers(Math.max(attacker.attack.state, 0));
+				defense = defender.defense.value*stageMultipliers(Math.min(defender.defense.state, 0));
+			} else {
+				attack = attacker.attack.value*stageMultipliers(attacker.attack.state);
+				defense = defender.defense.value*stageMultipliers(defender.defense.state);
+			}
+		} else if (move.damageClass === "special") {
+			if (critical === 1.5) {
+				attack = attacker.specialAttack.value*stageMultipliers(Math.max(attacker.specialAttack.state, 0));
+				defense = defender.specialDefense.value*stageMultipliers(Math.min(defender.specialDefense.state, 0));
+			} else {
+				attack = attacker.specialAttack.value*stageMultipliers(attacker.specialAttack.state);
+				defense = defender.specialDefense.value*stageMultipliers(defender.specialDefense.state);
+			}
+		}
+		let stab = (attacker.types.includes(move.type)) ? 1.2 : 1;
+		let type = (defender.types.reduce((total, type) => {
+			return total * ((typeof moveDamage[move.type][type] === Number) ? moveDamage[move.type][type] : 1);
+		},1))
+		console.log(burn, 'burn', attack, 'attack', defense, 'defense', random, 'random', critical, 'critical', stab, 'stab', type, 'type');
+		let weatherMult = ((weather.state === "rain" && move.type === "water") || (weather.state === "harsh sunlight" && move.type === "fire")) ? 1.5 : 1;
 
+		let damage = Math.floor(((((2*attacker.level)/5+2)*move.power*attack/defense)/50+2)*weatherMult*critical*random*stab*type*burn);
+		console.log(attacker.name, damage)
+	}
 }
 
 function aiSelect(){
@@ -336,15 +382,25 @@ async function getPokemonInfo(object, id) {
 		object.level = pokemonLevel(pokemon.data.experience);
 		
 		stats.forEach(stat => {
-			object[stat] = [calculateStat(pokemon.data[stat], object.level), 0];
+			object[stat] = {
+				value: calculateStat(pokemon.data[stat], object.level),
+				state: 0
+			};
 		})
 
 		let hp = calculateHealth(pokemon.data.hp, object.level);
 
+		object.critRate = {
+			value: (pokemon.data.speed/4)/256,
+			state: 0,
+		};
 		object.hp = [hp, hp];
 		object.accuracy = 0;
 		object.evasion = 0;
-		object.status = [null, null];
+		object.status = {
+			state: "normal",
+			duration: Infinity
+		};
 
 		object.moves = moves.data;
 		object.moves.forEach((move, index) => {
@@ -386,6 +442,10 @@ async function init() {
 
 	action = false;
 	message = `${opponentName.innerText} appeared.`
+	weather = {
+		state: "normal", 
+		duration: Infinity
+	};
 
 	render();
 }
