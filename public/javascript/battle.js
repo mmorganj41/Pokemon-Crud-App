@@ -170,7 +170,7 @@ const struggle = {
 	type: "normal",
 	damageClass: "physical",
 	power: 50,
-	pp: Infinity,
+	pp: [Infinity, Infinity],
 	target: "random-opponent",
 	statchange: [],
 	meta: {
@@ -192,7 +192,8 @@ const struggle = {
 		min_hits: null,
 		min_turns: null,
 		stat_chance: 0,
-	}
+	},
+	effectChance: null,
 }
 
 const stats = ['attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
@@ -201,11 +202,13 @@ const stats = ['attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
 
 let gameOver
 let winner
+let messages
 let message
 let action
 
 // Dom elements
 
+const battleController = document.getElementById('battleactions')
 const messageBoxEl = document.getElementById('messagebox');
 const opponentName = document.querySelector('#opponentpokemon .name');
 const opponentHealthbar = document.querySelector('#opponentpokemon .health-bar');
@@ -219,9 +222,35 @@ const playerSprite = document.querySelector('#userpokemon .battlesprite');
 
 // event listeners
 
-
+battleController.addEventListener('click', messageProgression);
 
 // Callback Functions
+
+function messageProgression(event){
+	if (messages?.length > 0) {
+		message = messages.shift();
+		if (message.length === 1) {
+			action = "main";
+		}
+	} else if (!action) {
+		action = "main";
+	}
+
+	if (action === "main") {
+		switch (event.target.innerHTML) {
+			case "Fight":
+				action = "fight"
+				break;
+		}
+	} else if (action === "fight") {
+		if (event.target.classList.contains('move')) {
+			action = null;
+			turn(event.target.classList[0]);
+		}
+	}
+
+	render()
+}
 
 // Helper Functions
 
@@ -246,8 +275,19 @@ function accEvadeMultiplier(stat) {
 }
 
 
-function turn() {
+function turn(playerMove) {
+	// speed comparison
+	let firstmove;
+	if (playerPokemon.speed[0] === opponentPokemon.speed[0]) {
+		firstmove = Math.round(Math.random()) ? "player" : "opponent";
+		console.log('random'); 
+	} else {
+		firstmove = (playerPokemon.speed[0] > opponentPokemon.speed[0]) ? "player" : "opponent";
+	}
 
+	console.log(playerPokemon.speed, opponentPokemon.speed)
+	console.log(playerMove);
+	console.log(firstmove);
 }
 
 function move(attacker, move, defender) {
@@ -287,7 +327,8 @@ async function getPokemonInfo(object, id) {
 			let level = moveLevel(move.experience);
 			object.moves[index].level = level;
 			object.moves[index].power = Math.floor(object.moves[index].power*(1+level*.03));
-			object.moves[index].pp = Math.floor(object.moves[index].pp*(1+level*.05));
+			const pp = Math.floor(object.moves[index].pp*(1+level*.05));
+			object.moves[index].pp = [pp, pp];
 		})
 
 	} catch(err) {
@@ -329,10 +370,63 @@ function render() {
 	playerHp.innerText = `${playerPokemon.hp[0]} / ${playerPokemon.hp[1]}`;
 	opponentHp.innerText = `${opponentPokemon.hp[0]} / ${opponentPokemon.hp[1]}`;
 
+	while (messageBoxEl.firstChild) {
+		messageBoxEl.removeChild(messageBoxEl.lastChild);
+	}
 
 	if (action) {
-
+		messageBoxEl.innerText = null;
+		if (action === "main"){
+			renderActions();
+		} else if (action === "fight"){
+			renderMoves();
+		}
 	} else {
 		messageBoxEl.innerText = message;
+	}
+}
+
+function renderActions() {
+	let fightEl = document.createElement('div');
+	fightEl.innerText = 'Fight';
+	messageBoxEl.append(fightEl);
+}
+
+function renderMoves() {
+	const ppTotal = playerPokemon.moves.reduce((sum, move) => sum + move.pp[0], 0);
+	if (ppTotal === 0 || playerPokemon.moves.length === 0) {
+		let moveEl = document.createElement("div");
+		let nameEl = document.createElement("div");
+		let ppEl = document.createElement("div");
+
+		[moveEl, nameEl, ppEl].forEach(e => {
+			e.classList.add(struggle.name)
+			e.classList.add("move")
+		});
+
+		nameEl.innerText = struggle.name;
+		ppEl.innerText = `${struggle.pp[0]}/${struggle.pp[1]}`
+
+		moveEl.append(nameEl);
+		moveEl.append(ppEl);
+		messageBoxEl.append(moveEl);
+	} else {
+		playerPokemon.moves.forEach(move => {
+			let moveEl = document.createElement("div");
+			let nameEl = document.createElement("div");
+			let ppEl = document.createElement("div");
+
+			[moveEl, nameEl, ppEl].forEach(e => {
+				e.classList.add(move.name)
+				e.classList.add("move")
+			});
+
+			nameEl.innerText = move.name;
+			ppEl.innerText = `${move.pp[0]}/${move.pp[1]}`
+
+			moveEl.append(nameEl);
+			moveEl.append(ppEl);
+			messageBoxEl.append(moveEl);
+		})
 	}
 }

@@ -193,6 +193,8 @@ a:visited {
 	border-radius: 10px;
 	height: 150px;
 	padding: 10px;
+	display: flex;
+	flex-direction: column;
 }
 
 .info {
@@ -262,6 +264,11 @@ a:visited {
 	font-size: 12px;
 	top: 20%;
 	left: 2%;
+}
+
+.move {
+	display: flex;
+	justify-content: space-between;
 }
 
 @keyframes battleidle {
