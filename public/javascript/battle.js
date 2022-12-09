@@ -6,6 +6,14 @@ const opponentId = window.location.pathname.match(/(?<=battle\/)\w*/)[0];
 const playerPokemon = {};
 const opponentPokemon = {};
 
+const battlePath = {
+	start: 'actions',
+	actions: 'fight',
+	fight: ['playerMove', 'computerMove']
+	playerMove: ['computerMove', 'actions', 'gameOver'],
+	computerMove: ['playerMove', 'actions', 'gameOver'],
+}
+
 const moveDamage = {
 	normal: {
 		rock: .5,

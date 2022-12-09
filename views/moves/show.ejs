@@ -1,27 +1,29 @@
 <%- include('../partials/header') %>
 	<h1>Move</h1>
-	<table>
-		<tr>
-			<th>Name</th>
-			<td><%= move.name %> </td>
-		</tr><tr>
-			<th>Type</th>
-			<td><%= move.type %> </td>
-		</tr><tr>
-			<th>Class</th>
-			<td><%= move.damageClass %> </td>
-		</tr><tr>
-			<th>Power</th>
-			<td><%= move.power %> </td>
-		</tr><tr>
-			<th>PP</th>
-			<td><%= move.pp %> </td>
-		</tr><tr>
-			<th>Level</th>
-			<td><%= move.level %> (<%= move.experience %>)</td>
-		</tr><tr>
-			<th>Info</th>
-			<td><%= move.info %> </td>
-		</tr>
-	</table>
+	<div id="movetable">
+		<table >
+			<tr>
+				<th>Name</th>
+				<th>Type</th>
+				<th>Class</th>
+			</tr>
+				<td><%= move.name %> </td>
+				<td><%= move.type %> </td>
+				<td><%= move.damageClass %> </td>
+			</tr>
+				<th>Power</th>
+				<th>PP</th>
+				<th>Level</th>
+			<tr>
+			<tr>
+				<td><%= move.power %></td>
+				<td><%= move.pp %> </td>
+				<td><%= move.level %> (<%= move.experience %>)</td>
+			</tr>		
+		</table>
+		<div id="moveinfo">
+			<div class="headers">Info</div>
+			<div id="info"><%= move.info %> </div>
+		</div>
+	</div>
 <%- include('../partials/footer') %>

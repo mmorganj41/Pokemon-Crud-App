@@ -50,6 +50,7 @@ async function deleteMove(req, res, next) {
 async function show(req, res, next) {
 	try {
 		const move = await Move.findById(req.params.id);
+		move.info = move.info.replace(/\$effect_chance/, move.effectChance);
 		move.level = dataFunctions.moveLevel(move.experience);
 		res.render('moves/show', {title: 'Move', move});
 	} catch(err) {
