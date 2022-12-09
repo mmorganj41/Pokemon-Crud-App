@@ -9,9 +9,9 @@ const opponentPokemon = {};
 const battlePath = {
 	start: 'actions',
 	actions: 'fight',
-	fight: ['playerMove', 'computerMove'],
-	playerMove: ['computerMove', 'actions', 'gameOver'],
-	computerMove: ['playerMove', 'actions', 'gameOver'],
+	fight: ['playerMove', 'opponentMove'],
+	playerMove: ['opponentMove', 'actions', 'gameOver'],
+	opponentMove: ['playerMove', 'actions', 'gameOver'],
 }
 
 const moveDamage = {
@@ -215,6 +215,9 @@ let gameState;
 let weather;
 let firstMove;
 let movesForTurn;
+let messageArray;
+let previousMessage;
+let priorHealthValues;
 
 // Dom elements
 
@@ -222,6 +225,8 @@ const battleController = document.getElementById('battleactions')
 const messageBoxEl = document.getElementById('messagebox');
 const opponentName = document.querySelector('#opponentpokemon .name');
 const opponentHealthbar = document.querySelector('#opponentpokemon .health-bar');
+const opponentBar = document.querySelector('#opponentpokemon .bar');
+const opponentHit = document.querySelector('#opponentpokemon .hit');
 const opponentHp = document.querySelector('#opponentpokemon .hp');
 const opponentSprite = document.querySelector('#opponentpokemon .battlesprite');
 const playerName = document.querySelector('#userpokemon .name');
@@ -229,6 +234,8 @@ const playerLevel = document.querySelector('#userpokemon span');
 const playerHealthbar = document.querySelector('#userpokemon .health-bar');
 const playerHp =document.querySelector('#userpokemon .hp');
 const playerSprite = document.querySelector('#userpokemon .battlesprite');
+const playerBar = document.querySelector('#userpokemon .bar');
+const playerHit = document.querySelector('#userpokemon .hit');
 
 // event listeners
 
@@ -237,8 +244,10 @@ battleController.addEventListener('click', messageProgression);
 // Callback Functions
 
 function messageProgression(event){ 
-	console.log(gameState, battlePath[gameState], typeof battlePath[gameState]);
-	if (typeof battlePath[gameState] === 'string' || battlePath[gameState].length === 1) {
+	console.log(messageArray);
+	if (messageArray.length > 0) {
+		message = messageArray.shift();
+	} else if (typeof battlePath[gameState] === 'string' || battlePath[gameState].length === 1) {
 		gameState = battlePath[gameState]
 	} else {
 		switch (gameState) {
@@ -246,17 +255,17 @@ function messageProgression(event){
 				if (event.target.classList.contains('move')) {
 					movesForTurn = turnParser(event.target.classList[0]);
 					if (gameState === 'playerMove') {
-						turnMove(moves.playerMove);
+						turnMove(true, movesForTurn.playerMove);
 					} else if (gameState === 'opponentMove'){
-						turnMove(moves.opponentMove);
+						turnMove(false, movesForTurn.opponentMove);
 					}
 				}
 				break;
 			case "playerMove": 
-				turnMove(moves.playerMove);
+				turnMove(true, movesForTurn.playerMove);
 				break;
 			case "opponentMove": {
-				turnMove(moves.opponentMove);
+				turnMove(false, movesForTurn.opponentMove);
 				break;
 			}
 			case "gameOver": {
@@ -323,26 +332,30 @@ function turnParser(playerMove) {
 
 }
 
-function turnMove(move) {
+function turnMove(playerMoveBool, move) {
+	(playerMoveBool) ? 	moveParser(playerPokemon, move, opponentPokemon) : moveParser(opponentPokemon, move, playerPokemon);
 	
+	message = messageArray.shift();
 
 	if (playerPokemon.hp[0] <= 0 || opponentPokemon.hp[0] <= 0) {
-		gameState = battlePath[2]
+		gameState = battlePath[gameState][2]
 	} else if (firstMove) {
 		firstMove = false;
-		gameState = battlePath[0];
+		gameState = battlePath[gameState][0];
 	} else {
-		gameState = battlePath[1];
+		gameState = battlePath[gameState][1];
 	}
 }
 
 function moveParser(attacker, move, defender) {
+	messageArray.push([`${attacker.name} used ${move.name}.`]);
 	if (move.damageClass === "physical" || move.damageClass === "special") {
 		let burn = 1;
 		let attack;
 		let defense;
 		let random = (Math.random()*15+85)/100;
 		let critical = (Math.random() < attacker.critRate.value*(3**(move.meta.crit_rate+attacker.critRate.stage))) ? 1.5 : 1;
+		if (critical === 1.5) messageArray.push('Critical Hit.')
 		if (move.damageClass === "physical") {
 			if (attacker.status.state === "burn") burn = .5
 			if (critical === 1.5) {
@@ -363,13 +376,22 @@ function moveParser(attacker, move, defender) {
 		}
 		let stab = (attacker.types.includes(move.type)) ? 1.2 : 1;
 		let type = (defender.types.reduce((total, type) => {
-			return total * ((typeof moveDamage[move.type][type] === Number) ? moveDamage[move.type][type] : 1);
+			return total * ((typeof moveDamage[move.type][type] === "number") ? moveDamage[move.type][type] : 1);
 		},1))
-		console.log(burn, 'burn', attack, 'attack', defense, 'defense', random, 'random', critical, 'critical', stab, 'stab', type, 'type');
+		if (type === 0) {
+			messageArray.push("It has no effect.");
+		} else if (type < 1) {
+			messageArray.push("It's not very effective.");
+		} else if (type > 1) {
+			messageArray.push("It's super effective!");
+		}
+
+		console.log(type);
 		let weatherMult = ((weather.state === "rain" && move.type === "water") || (weather.state === "harsh sunlight" && move.type === "fire")) ? 1.5 : 1;
 
 		let damage = Math.floor(((((2*attacker.level)/5+2)*move.power*attack/defense)/50+2)*weatherMult*critical*random*stab*type*burn);
-		console.log(attacker.name, damage)
+
+		defender.hp[0] -= damage;
 	}
 }
 
@@ -464,24 +486,28 @@ async function init() {
 	await getPokemonInfo(opponentPokemon, opponentId);
 
 	gameState = 'start';
+	messageArray = [];
 	message = `${opponentName.innerText} appeared.`
 	weather = {
 		state: "normal", 
 		duration: Infinity
 	};
+	priorHealthValues = {
+		player: playerPokemon.hp[0],
+		opponent: opponentPokemon.hp[0],
+	}
 
 	render();
 }
 
 function render() {
-	playerHp.innerText = `${playerPokemon.hp[0]} / ${playerPokemon.hp[1]}`;
-	opponentHp.innerText = `${opponentPokemon.hp[0]} / ${opponentPokemon.hp[1]}`;
+	renderHealth();
 
 	while (messageBoxEl.firstChild) {
 		messageBoxEl.removeChild(messageBoxEl.lastChild);
 	}
 
-	if (['start', 'playerMove', 'computerMove', 'gameOver'].includes(gameState)) {
+	if (['start', 'playerMove', 'opponentMove', 'gameOver'].includes(gameState)) {
 		messageBoxEl.innerText = message;
 	} else {
 		messageBoxEl.innerText = null;
@@ -491,6 +517,38 @@ function render() {
 			renderMoves();
 		}
 	} 
+}
+
+function renderHealth() {
+	currentPlayerHealth = playerPokemon.hp[0];
+	currentOpponentHealth = opponentPokemon.hp[0];
+
+	const player = {
+		barWidth: (currentPlayerHealth / playerPokemon.hp[1]) * 100,
+    	hitWidth: ((priorHealthValues.player - currentPlayerHealth) / priorHealthValues.player) * 100 + "%",
+	}
+
+	const opponent = {
+		barWidth: (currentPlayerHealth / opponentPokemon.hp[1]) * 100,
+    	hitWidth: ((priorHealthValues.opponent - currentOpponentHealth) / priorHealthValues.opponent) * 100 + "%",
+	}
+
+	playerHit.setAttribute('width', player.hitWidth);
+	opponentHit.setAttribute('width', player.hitWidth);
+
+	setTimeout(() => {
+		playerHit.setAttribute('width', '0');
+		playerBar.setAttribute('width', player.barWidth + "%");
+		opponentHit.setAttribute('width', '0');
+		opponentBar.setAttribute('width', opponent.barWidth + "%");
+	}, 500);
+
+
+	playerHp.innerText = `${playerPokemon.hp[0]} / ${playerPokemon.hp[1]}`;
+	opponentHp.innerText = `${opponentPokemon.hp[0]} / ${opponentPokemon.hp[1]}`;
+
+	priorHealthValues.player = currentPlayerHealth;
+	priorHealthValues.opponent = currentOpponentHealth;
 }
 
 function renderActions() {
