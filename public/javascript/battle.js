@@ -391,7 +391,7 @@ function moveParser(attacker, move, defender) {
 
 		let damage = Math.floor(((((2*attacker.level)/5+2)*move.power*attack/defense)/50+2)*weatherMult*critical*random*stab*type*burn);
 
-		defender.hp[0] -= damage;
+		defender.hp[0] = (damage > defender.hp[0]) ? 0 : defender.hp[0]-damage;
 	}
 }
 
@@ -529,20 +529,22 @@ function renderHealth() {
 	}
 
 	const opponent = {
-		barWidth: (currentPlayerHealth / opponentPokemon.hp[1]) * 100,
+		barWidth: (currentOpponentHealth / opponentPokemon.hp[1]) * 100,
     	hitWidth: ((priorHealthValues.opponent - currentOpponentHealth) / priorHealthValues.opponent) * 100 + "%",
 	}
 
-	playerHit.setAttribute('width', player.hitWidth);
-	opponentHit.setAttribute('width', player.hitWidth);
+	if(priorHealthValues.player !== currentPlayerHealth || priorHealthValues.opponent !== currentOpponentHealth) {
+		console.log("RENDERING HBAR")
+		playerHit.style.width = player.hitWidth;
+		opponentHit.style.width = opponent.hitWidth;
 
-	setTimeout(() => {
-		playerHit.setAttribute('width', '0');
-		playerBar.setAttribute('width', player.barWidth + "%");
-		opponentHit.setAttribute('width', '0');
-		opponentBar.setAttribute('width', opponent.barWidth + "%");
-	}, 500);
-
+		setTimeout(() => {
+			playerHit.style.width = 0;
+			playerBar.style.width = player.barWidth + "%";
+			opponentHit.style.width = 0;
+			opponentBar.style.width = opponent.barWidth + "%";
+		}, 500);
+	}
 
 	playerHp.innerText = `${playerPokemon.hp[0]} / ${playerPokemon.hp[1]}`;
 	opponentHp.innerText = `${opponentPokemon.hp[0]} / ${opponentPokemon.hp[1]}`;
