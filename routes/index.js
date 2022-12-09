@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const passport = require('passport');
+const isLoggedIn = require('../config/auth');
 
 // The root route renders our only view
 router.get('/', function(req, res) {
@@ -16,8 +17,8 @@ router.get('/auth/google', passport.authenticate(
 router.get('/oauth2callback', passport.authenticate(
   'google',
   {
-    successRedirect : '/pokemon', // UPDATE THIS, where do you want the client to go after you login 
-    failureRedirect : '/pokemon' //  UPDATE THIS, where do you want the client to go if login fails
+    failureRedirect : '/pokemon',
+    successRedirect: '/pokemon'
   }
 ));
 

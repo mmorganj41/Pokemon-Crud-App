@@ -9,7 +9,7 @@ const opponentPokemon = {};
 const battlePath = {
 	start: 'actions',
 	actions: 'fight',
-	fight: ['playerMove', 'computerMove']
+	fight: ['playerMove', 'computerMove'],
 	playerMove: ['computerMove', 'actions', 'gameOver'],
 	computerMove: ['playerMove', 'actions', 'gameOver'],
 }
@@ -209,12 +209,12 @@ const stats = ['attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
 
 // Global Variables
 
-let gameOver;
 let winner;
-let messages;
 let message;
-let action;
+let gameState;
 let weather;
+let firstMove;
+let movesForTurn;
 
 // Dom elements
 
@@ -237,27 +237,31 @@ battleController.addEventListener('click', messageProgression);
 // Callback Functions
 
 function messageProgression(event){ 
-	if (!action) {
-		action = "main";
-	}
-
-	if (action === "main") {
-		switch (event.target.innerHTML) {
-			case "Fight":
-				action = "fight"
+	console.log(gameState, battlePath[gameState], typeof battlePath[gameState]);
+	if (typeof battlePath[gameState] === 'string' || battlePath[gameState].length === 1) {
+		gameState = battlePath[gameState]
+	} else {
+		switch (gameState) {
+			case "fight":
+				if (event.target.classList.contains('move')) {
+					movesForTurn = turnParser(event.target.classList[0]);
+					if (gameState === 'playerMove') {
+						turnMove(moves.playerMove);
+					} else if (gameState === 'opponentMove'){
+						turnMove(moves.opponentMove);
+					}
+				}
 				break;
-		}
-	} else if (action === "fight") {
-		if (event.target.classList.contains('move')) {
-			action = null;
-			turn(event.target.classList[0]);
-		}
-	}
-
-	if (messages?.length > 0) {
-		message = messages.shift();
-		if (message.length === 1) {
-			action = "main";
+			case "playerMove": 
+				turnMove(moves.playerMove);
+				break;
+			case "opponentMove": {
+				turnMove(moves.opponentMove);
+				break;
+			}
+			case "gameOver": {
+				endGame();
+			}
 		}
 	}
 
@@ -287,45 +291,52 @@ function accEvadeMultiplier(stat) {
 }
 
 
-function turn(playerMove) {
+function turnParser(playerMove) {
+	firstMove = true;
 	const pokemonArray = [playerPokemon, opponentPokemon];
 	playerMove = playerPokemon.moves.find(move => move.name === playerMove) || struggle;
 	
 	if (!playerMove.pp[0]) {
-		messages = ["That move is out of PP, select another."];
+		message = "That move is out of PP, select another.";
+		gameState = "actions";
 		return;
 	} 
 
 	let opponentMove = aiSelect();
 
-	let firstMove;
 	let playerSpeed = playerPokemon.speed.value*stageMultipliers(playerPokemon.speed.state)*((playerPokemon.status.state === "paralysis") ? .5 : 1)
 	let opponentSpeed = opponentPokemon.speed.value*stageMultipliers(opponentPokemon.speed.state)*((playerPokemon.status.state === "paralysis") ? .5 : 1)
 	if (playerMove.priority === opponentMove.priority) {
 		if (playerSpeed === opponentSpeed) {
-			firstMove = Math.round(Math.random()) ? "player" : "opponent";
+			gameState = Math.round(Math.random()) ? "playerMove" : "opponentMove";
 		} else {
-			firstMove = (playerSpeed > opponentSpeed) ? "player" : "opponent";
+			gameState = (playerSpeed > opponentSpeed) ? "playerMove" : "opponentMove";
 		}
 	} else {
-		firstMove = (playerMove.priority > opponentMove.Priority) ? "player" : "opponent";
+		gameState = (playerMove.priority > opponentMove.Priority) ? "playerMove" : "opponentMove";
 	}
 
-	if (firstMove === 'player') {
-		bothMoves(playerPokemon, playerMove, opponentPokemon, opponentMove);
+	return {
+		playerMove,
+		opponentMove,
+	}
+
+}
+
+function turnMove(move) {
+	
+
+	if (playerPokemon.hp[0] <= 0 || opponentPokemon.hp[0] <= 0) {
+		gameState = battlePath[2]
+	} else if (firstMove) {
+		firstMove = false;
+		gameState = battlePath[0];
 	} else {
-		bothMoves(opponentPokemon, opponentMove, playerPokemon, playerMove);
+		gameState = battlePath[1];
 	}
-
 }
 
-function bothMoves(firstPokemon, firstMove, secondPokemon, secondMove) {
-	move(firstPokemon, firstMove, secondPokemon);
-
-	move(secondPokemon, secondMove, firstPokemon);
-}
-
-function move(attacker, move, defender) {
+function moveParser(attacker, move, defender) {
 	if (move.damageClass === "physical" || move.damageClass === "special") {
 		let burn = 1;
 		let attack;
@@ -362,13 +373,17 @@ function move(attacker, move, defender) {
 	}
 }
 
+function endGame() {
+
+}
+
 function aiSelect(){
 	const ppTotal = opponentPokemon.moves.reduce((sum, move) => sum + move.pp[0], 0);
 	if (ppTotal === 0 || opponentPokemon.moves.length === 0) {
 		return struggle;
 	} else {
 		const availableMoves = opponentPokemon.moves.filter(move => move.pp[0] > 0);
-		return availableMoves[Math.floor(Math.random*availableMoves.length)];
+		return availableMoves[Math.floor(Math.random()*availableMoves.length)];
 	}
 }
 
@@ -448,7 +463,7 @@ async function init() {
 	await getPokemonInfo(playerPokemon, playerId);
 	await getPokemonInfo(opponentPokemon, opponentId);
 
-	action = false;
+	gameState = 'start';
 	message = `${opponentName.innerText} appeared.`
 	weather = {
 		state: "normal", 
@@ -466,16 +481,16 @@ function render() {
 		messageBoxEl.removeChild(messageBoxEl.lastChild);
 	}
 
-	if (action) {
+	if (['start', 'playerMove', 'computerMove', 'gameOver'].includes(gameState)) {
+		messageBoxEl.innerText = message;
+	} else {
 		messageBoxEl.innerText = null;
-		if (action === "main"){
+		if (gameState === "actions"){
 			renderActions();
-		} else if (action === "fight"){
+		} else if (gameState === "fight"){
 			renderMoves();
 		}
-	} else {
-		messageBoxEl.innerText = message;
-	}
+	} 
 }
 
 function renderActions() {
