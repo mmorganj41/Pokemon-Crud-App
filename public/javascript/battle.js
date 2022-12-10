@@ -228,19 +228,22 @@ let experience;
 
 const battleController = document.getElementById('battleactions')
 const messageBoxEl = document.getElementById('messagebox');
-const opponentName = document.querySelector('#opponentpokemon .name');
-const opponentHealthbar = document.querySelector('#opponentpokemon .health-bar');
-const opponentBar = document.querySelector('#opponentpokemon .bar');
-const opponentHit = document.querySelector('#opponentpokemon .hit');
-const opponentHp = document.querySelector('#opponentpokemon .hp');
-const opponentSprite = document.querySelector('#opponentpokemon .battlesprite');
-const playerName = document.querySelector('#userpokemon .name');
-const playerLevel = document.querySelector('#userpokemon span');
-const playerHealthbar = document.querySelector('#userpokemon .health-bar');
-const playerHp =document.querySelector('#userpokemon .hp');
-const playerSprite = document.querySelector('#userpokemon .battlesprite');
-const playerBar = document.querySelector('#userpokemon .bar');
-const playerHit = document.querySelector('#userpokemon .hit');
+
+playerPokemon.elements = {};
+opponentPokemon.elements = {};
+getPokemonElements(playerPokemon.elements, 'userpokemon');
+getPokemonElements(opponentPokemon.elements, 'opponentpokemon');
+
+function getPokemonElements(element, id) {
+	element.nameEl = document.querySelector(`#${id} .name`);
+	element.levelEl = document.querySelector(`#${id} span`);
+	element.levelEl = document.querySelector(`#${id} .health-bar`);
+	element.hpEl =document.querySelector(`#${id} .hp`);
+	element.spriteEl = document.querySelector(`#${id} .battlesprite`);
+	element.barEl = document.querySelector(`#${id} .bar`);
+	element.hitEl = document.querySelector(`#${id} .hit`);
+
+}
 
 // event listeners
 
@@ -299,7 +302,7 @@ function messageProgression(event){
 			case "draw": {
 				pokemonArray.forEach(p => {
 					if (!p.faintFirst) {
-						message = `${p.name} fainted.`;
+						message = `${p.elements.nameEl.innerText} fainted.`;
 						p.fainted = true;
 					}
 					messageArray.push('Gained experience')
@@ -386,7 +389,7 @@ function turnMove(attacker, defender) {
 
 function moveParser(attacker, defender) {
 	let move = attacker.currentMove;
-	messageArray.push([`${attacker.name} used ${move.name}.`]);
+	messageArray.push([`${attacker.elements.nameEl.innerText} used ${move.name}.`]);
 	if (move.damageClass === "physical" || move.damageClass === "special") {
 		let burn = 1;
 		let attack;
@@ -436,17 +439,17 @@ function endGame() {
 	if (playerPokemon.hp[0] <= 0 && opponentPokemon.hp[0] <= 0) {
 		pokemonArray.forEach(p => {
 			if (p.faintFirst) {
-				message = `${p.name} fainted.`;
+				message = `${p.elements.nameEl.innerText} fainted.`;
 				gameState = battlePath[gameState][2];
 				p.fainted = true;
 			}
 		})
 	} else if (playerPokemon.hp[0] <= 0) {
-		message = `${playerPokemon.name} fainted.`;
+		message = `${playerPokemon.elements.nameEl.innerText} fainted.`;
 		gameState = battlePath[gameState][1];
 		playerPokemon.fainted = true;
 	} else if (opponentPokemon.hp[0] <= 0) {
-		message = `${opponentPokemon.name} fainted.`;
+		message = `${opponentPokemon.elements.nameEl.innerText} fainted.`;
 		gameState = battlePath[gameState][0];
 		opponentPokemon.fainted = true;
 	} else {
@@ -544,7 +547,7 @@ async function init() {
 
 	gameState = 'start';
 	messageArray = [];
-	message = `${opponentName.innerText} appeared.`
+	message = `${opponentPokemon.elements.nameEl.innerText} appeared.`
 	weather = {
 		state: "normal", 
 		duration: Infinity
@@ -588,11 +591,8 @@ function render() {
 function countdown(element) {
 	let time = delay;
 	const countdown = setInterval(() => {
-		console.log(countdown);
 		if (time <= 0) {
-			console.log("i'm working");
 			element.classList.remove("attacking");
-			console.log(element.classList);
 					
 			clearInterval(countdown)    
 		}
@@ -601,64 +601,47 @@ function countdown(element) {
 }
 
 function renderAttacking() {
-	if (playerPokemon.attacking) {
-		playerSprite.classList.add("attacking");
-		countdown(playerSprite);
-	} else {
-		playerSprite.classList.remove("attacking");
-	}
-
-	if (opponentPokemon.attacking) {
-		opponentSprite.classList.add("attacking");
-		countdown(opponentSprite);
-	} else {
-		opponentSprite.classList.remove("attacking");
-	}
-
+	pokemonArray.forEach(pokemon => {
+		if (pokemon.attacking) {
+			pokemon.elements.spriteEl.classList.add("attacking");
+			countdown(pokemon.elements.spriteEl);
+		} else {
+			pokemon.elements.spriteEl.classList.remove("attacking");
+		}
+	})
 }
 
 function renderFainted() {
-	if (playerPokemon.fainted) {
-		playerSprite.classList.add("fainted");
-	}
-
-	if (opponentPokemon.fainted) {
-		opponentSprite.classList.add("fainted");
-	}
+	pokemonArray.forEach(pokemon => {
+		if (pokemon.fainted) {
+			pokemon.elements.spriteEl.classList.add("fainted");
+			countdown(pokemon.elements.spriteEl);
+		} 
+	})
 }
 
 function renderHealth() {
-	currentPlayerHealth = playerPokemon.hp[0];
-	currentOpponentHealth = opponentPokemon.hp[0];
+	pokemonArray.forEach(pokemon => {
+		let currentHealth = pokemon.hp[0];
 
-	const player = {
-		barWidth: (currentPlayerHealth / playerPokemon.hp[1]) * 100,
-    	hitWidth: ((playerPokemon.priorHealthValues - currentPlayerHealth) / playerPokemon.priorHealthValues) * 100 + "%",
-	}
-
-	const opponent = {
-		barWidth: (currentOpponentHealth / opponentPokemon.hp[1]) * 100,
-    	hitWidth: ((opponentPokemon.priorHealthValues  - currentOpponentHealth) / opponentPokemon.priorHealthValues) * 100 + "%",
-	}
-
-	if(playerPokemon.priorHealthValues !== currentPlayerHealth || opponentPokemon.priorHealthValues !== currentOpponentHealth) {
+		const healthbar = {
+			barWidth: (currentHealth / pokemon.hp[1]) * 100,
+			hitWidth: ((pokemon.priorHealthValues - currentHealth) / pokemon.priorHealthValues) * 100 + "%",
+		}
+		if(pokemon.priorHealthValues !== currentHealth) {
 	
-		playerHit.style.width = player.hitWidth;
-		opponentHit.style.width = opponent.hitWidth;
+			pokemon.elements.hitEl.style.width = healthbar.hitWidth;
+	
+			setTimeout(() => {
+				pokemon.elements.hitEl.style.width = 0;
+				pokemon.elements.barEl.style.width = healthbar.barWidth + "%";
+			}, 500);
 
-		setTimeout(() => {
-			playerHit.style.width = 0;
-			playerBar.style.width = player.barWidth + "%";
-			opponentHit.style.width = 0;
-			opponentBar.style.width = opponent.barWidth + "%";
-		}, 500);
-	}
+		}
+		pokemon.elements.hpEl.innerText = `${pokemon.hp[0]} / ${pokemon.hp[1]}`;
 
-	playerHp.innerText = `${playerPokemon.hp[0]} / ${playerPokemon.hp[1]}`;
-	opponentHp.innerText = `${opponentPokemon.hp[0]} / ${opponentPokemon.hp[1]}`;
-
-	playerPokemon.priorHealthValues= currentPlayerHealth;
-	opponentPokemon.priorHealthValues = currentOpponentHealth;
+		pokemon.priorHealthValues = currentHealth;
+	})
 }
 
 function renderActions() {
