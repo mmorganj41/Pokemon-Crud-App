@@ -342,9 +342,13 @@ a:visited {
 }
 
 .lowhealth {
+	background: yellow;
+}
+
+.criticalhealth {
 	background: red;
 
-	animation: flashing .25s linear infinite;
+	animation: flashing .5s linear infinite;
 }
   
 .hit {
@@ -439,9 +443,9 @@ a:visited {
  
  @keyframes flashing {
     from, to { 
-        background-color: transparent;
+        background: transparent;
     }
     50% { 
-        border-color: red;
+        background: red;
     }
 }

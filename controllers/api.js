@@ -45,6 +45,7 @@ async function showPokemonMoves(req,res,next) {
 	}
 }
 
+
 module.exports = {
 	index,
 	show,

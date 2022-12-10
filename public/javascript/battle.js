@@ -221,8 +221,7 @@ let firstClick;
 let firstMove;
 let movesForTurn;
 let messageArray;
-let previousMessage;
-let experience;
+let gainedExperience;
 
 // Dom elements
 
@@ -237,12 +236,10 @@ getPokemonElements(opponentPokemon.elements, 'opponentpokemon');
 function getPokemonElements(element, id) {
 	element.nameEl = document.querySelector(`#${id} .name`);
 	element.levelEl = document.querySelector(`#${id} span`);
-	element.levelEl = document.querySelector(`#${id} .health-bar`);
 	element.hpEl =document.querySelector(`#${id} .hp`);
 	element.spriteEl = document.querySelector(`#${id} .battlesprite`);
 	element.barEl = document.querySelector(`#${id} .bar`);
 	element.hitEl = document.querySelector(`#${id} .hit`);
-
 }
 
 // event listeners
@@ -251,7 +248,7 @@ battleController.addEventListener('click', messageProgression);
 
 // Callback Functions
 
-function messageProgression(event){ 
+async function messageProgression(event){ 
 	pokemonArray.forEach(p => {
 		p.attacking = false;
 	})
@@ -292,21 +289,29 @@ function messageProgression(event){
 				break;
 			}
 			case "win": {
-				message = `Gained experience.`
+				let experience = opponentPokemon.experienceGain;
+				await updateExperience(experience);
 				break;
 			}
 			case "lose": {
-				message = 'Try again'
+				let experience = 0;
+				await updateExperience(experience);
 				break;
 			}
 			case "draw": {
 				pokemonArray.forEach(p => {
 					if (!p.faintFirst) {
-						message = `${p.elements.nameEl.innerText} fainted.`;
+						prepareMessage(`${p.elements.nameEl.innerText} fainted.`);
 						p.fainted = true;
 					}
-					messageArray.push('Gained experience')
 				})
+				let experience = Math.round(opponentPokemon.experienceGain/2);
+				await updateExperience(experience);
+				break;
+			}
+			case "redirect": {
+				window.location.assign(`http://localhost:3000/pokemon/${playerId}/battle`);
+				break;
 			}
 		}
 	}
@@ -315,6 +320,48 @@ function messageProgression(event){
 }
 
 // Helper Functions
+
+async function updateExperience(experience) {
+	if (!gainedExperience) {
+		playerPokemon.experience += experience;
+
+		let expMessage = (experience) ? `Gained ${experience} experience.` : 'Try again.'
+		prepareMessage(expMessage);
+
+		const data = {};
+		data.experience = playerPokemon.experience;
+		data.moves = [];
+		playerPokemon.moves.forEach(move => {
+			move.experience += Math.floor(experience/10);
+			data.moves.push({
+				id: move._id,
+				experience: move.experience,
+			});
+		})
+
+		gainedExperience = true;
+		const res = await axios({
+			method: 'put',
+			url: `http://localhost:3000/pokemon/${playerId}`,
+			data,
+		});
+		
+		console.log(res);
+
+		let newLevel = pokemonLevel(playerPokemon.experience);
+
+		if (newLevel !== playerPokemon.level) {
+			playerPokemon.level = newLevel;
+			prepareMessage(`${playerPokemon.elements.nameEl.innerText} reached level ${playerPokemon.level}`);
+		}
+
+		gameState = 'redirect';
+	}
+}
+
+function prepareMessage(text) {
+	(message) ? messageArray.push(text) : message = text;
+} 
 
 function stageMultipliers(stat) {
 	if (stat === 0) {
@@ -358,7 +405,8 @@ function turnParser(playerMove) {
 			gameState = (playerSpeed > opponentSpeed) ? "playerMove" : "opponentMove";
 		}
 	} else {
-		gameState = (playerMove.priority > opponentMove.Priority) ? "playerMove" : "opponentMove";
+		gameState = (playerMove.priority > opponentMove.priority) ? "playerMove" : "opponentMove";
+		console.log(gameState);
 	}
 
 	playerPokemon.currentMove = playerMove;
@@ -389,14 +437,14 @@ function turnMove(attacker, defender) {
 
 function moveParser(attacker, defender) {
 	let move = attacker.currentMove;
-	messageArray.push([`${attacker.elements.nameEl.innerText} used ${move.name}.`]);
+	prepareMessage([`${attacker.elements.nameEl.innerText} used ${move.name}.`]);
 	if (move.damageClass === "physical" || move.damageClass === "special") {
 		let burn = 1;
 		let attack;
 		let defense;
 		let random = (Math.random()*15+85)/100;
 		let critical = (Math.random() < attacker.critRate.value*(3**(move.meta.crit_rate+attacker.critRate.stage))) ? 1.5 : 1;
-		if (critical === 1.5) messageArray.push('Critical Hit.')
+		if (critical === 1.5) prepareMessage('Critical Hit.')
 		if (move.damageClass === "physical") {
 			if (attacker.status.state === "burn") burn = .5
 			if (critical === 1.5) {
@@ -420,11 +468,11 @@ function moveParser(attacker, defender) {
 			return total * ((typeof moveDamage[move.type][type] === "number") ? moveDamage[move.type][type] : 1);
 		},1))
 		if (type === 0) {
-			messageArray.push("It has no effect.");
+			prepareMessage("It has no effect.");
 		} else if (type < 1) {
-			messageArray.push("It's not very effective.");
+			prepareMessage("It's not very effective.");
 		} else if (type > 1) {
-			messageArray.push("It's super effective!");
+			prepareMessage("It's super effective!");
 		}
 
 		let weatherMult = ((weather.state === "rain" && move.type === "water") || (weather.state === "harsh sunlight" && move.type === "fire")) ? 1.5 : 1;
@@ -439,21 +487,21 @@ function endGame() {
 	if (playerPokemon.hp[0] <= 0 && opponentPokemon.hp[0] <= 0) {
 		pokemonArray.forEach(p => {
 			if (p.faintFirst) {
-				message = `${p.elements.nameEl.innerText} fainted.`;
+				prepareMessage(`${p.elements.nameEl.innerText} fainted.`);
 				gameState = battlePath[gameState][2];
 				p.fainted = true;
 			}
 		})
 	} else if (playerPokemon.hp[0] <= 0) {
-		message = `${playerPokemon.elements.nameEl.innerText} fainted.`;
+		prepareMessage(`${playerPokemon.elements.nameEl.innerText} fainted.`);
 		gameState = battlePath[gameState][1];
 		playerPokemon.fainted = true;
 	} else if (opponentPokemon.hp[0] <= 0) {
-		message = `${opponentPokemon.elements.nameEl.innerText} fainted.`;
+		prepareMessage(`${opponentPokemon.elements.nameEl.innerText} fainted.`);
 		gameState = battlePath[gameState][0];
 		opponentPokemon.fainted = true;
 	} else {
-		message = 'error.';
+		prepareMessage('error.');
 	}
 }
 
@@ -484,14 +532,19 @@ async function getPokemonInfo(object, id) {
 		object.experience = pokemon.data.experience;
 		object.level = pokemonLevel(pokemon.data.experience);
 		
+		let statTotal = 0;
 		stats.forEach(stat => {
 			object[stat] = {
 				value: calculateStat(pokemon.data[stat], object.level),
 				state: 0
 			};
+			statTotal += pokemon.data[stat]
 		})
 
 		let hp = calculateHealth(pokemon.data.hp, object.level);
+		statTotal += pokemon.data.hp;
+
+		object.experienceGain = Math.floor((statTotal)*(1+object.level)/14);
 
 		object.critRate = {
 			value: (pokemon.data.speed/4)/256,
@@ -517,10 +570,6 @@ async function getPokemonInfo(object, id) {
 	} catch(err) {
 		console.log(err);
 	}
-
-	function pokemonLevel(experience) {
-		return Math.min(Math.floor(experience ** (1 / 3)), 100);
-	}
 	
 	function moveLevel(experience) {
 		return Math.min(Math.floor(experience ** (1 / 3)), 10);
@@ -535,6 +584,10 @@ async function getPokemonInfo(object, id) {
 	}
 }
 
+function pokemonLevel(experience) {
+	return Math.min(Math.floor(experience ** (1 / 3)), 100);
+}
+
 
 // Main Functions
 
@@ -544,10 +597,10 @@ async function init() {
 	await getPokemonInfo(playerPokemon, playerId);
 	await getPokemonInfo(opponentPokemon, opponentId);
 
-
+	gainedExperience = false;
 	gameState = 'start';
 	messageArray = [];
-	message = `${opponentPokemon.elements.nameEl.innerText} appeared.`
+	prepareMessage(`${opponentPokemon.elements.nameEl.innerText} appeared.`);
 	weather = {
 		state: "normal", 
 		duration: Infinity
@@ -573,7 +626,9 @@ function render() {
 
 	renderFainted();
 
-	if (previousMessage = message) {
+	renderLevelUp();
+
+	if (message) {
 		messageBoxEl.innerText = message;
 		message = null;
 	} else {
@@ -582,10 +637,13 @@ function render() {
 			renderActions();
 		} else if (gameState === "fight"){
 			renderMoves();
-		}
+		} 
 	} 
 
-	previousMessage = messageBoxEl.innerText;
+}
+
+function renderLevelUp() {
+	playerPokemon.elements.levelEl.innerText = playerPokemon.level;
 }
 
 function countdown(element) {
@@ -635,6 +693,17 @@ function renderHealth() {
 			setTimeout(() => {
 				pokemon.elements.hitEl.style.width = 0;
 				pokemon.elements.barEl.style.width = healthbar.barWidth + "%";
+				let healthpercent = parseFloat(pokemon.elements.barEl.style.width);
+				if (healthpercent < 25) {
+					pokemon.elements.barEl.classList.add("criticalhealth");
+					pokemon.elements.barEl.classList.remove("lowhealth");
+				} else if (healthpercent < 50) {
+					pokemon.elements.barEl.classList.remove("criticalhealth");
+					pokemon.elements.barEl.classList.add("lowhealth");
+				} else {
+					pokemon.elements.barEl.classList.remove("criticalhealth");
+					pokemon.elements.barEl.classList.remove("lowhealth");
+				}
 			}, 500);
 
 		}

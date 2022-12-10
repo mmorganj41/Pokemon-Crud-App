@@ -12,7 +12,7 @@ async function create(req, res, next) {
 		})
 
 		const move = {
-			name: moveData.data.name,
+			name: (moveData.data.name).replace('-', ' '),
 			accuracy: moveData.data.accuracy,
 			type: moveData.data.type.name,
 			damageClass: moveData.data.damage_class.name,

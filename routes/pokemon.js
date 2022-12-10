@@ -7,5 +7,6 @@ router.get('/new', isLoggedIn, pokemonController.new);
 router.get('/:id', pokemonController.show);
 router.post('/', isLoggedIn, pokemonController.create);
 router.delete('/:id', isLoggedIn, pokemonController.delete);
+router.put('/:id', isLoggedIn, pokemonController.update);
 
 module.exports = router;

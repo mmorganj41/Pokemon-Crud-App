@@ -69,12 +69,13 @@ async function show(req, res, next) {
 		});
 
 		const moves = await Move.find({pokemon: pokemon._id});
-		const moveNames = moves.map(move => move.name);
+		const moveNames = moves.map(move => move.name.replace('-', ' '));
 		pokemon.moves = moves;
 
 		const moveOptions = pokemonQuery.data.moves.reduce((filtered, moveData) => {
 			const learnMethod = moveData.version_group_details[0].move_learn_method.name;
 			const levelLearned = moveData.version_group_details[0].level_learned_at;
+			moveData.move.name = moveData.move.name.replace('-', ' ')
 			const moveName = moveData.move.name;
 	
 			if (!(moveNames.includes(moveName)) && levelLearned <= pokemonLevel && (learnMethod === 'egg' || learnMethod === 'level-up')) {
@@ -166,10 +167,36 @@ async function deletePokemon(req, res, next) {
 	}
 }
 
+async function update(req,res,next){
+	try {
+		console.log(req.body);
+
+		const pokemon = await Pokemon.findById(req.params.id);
+		
+		req.body.moves.forEach(async moveObj => {
+			const move = await Move.findById(moveObj.id);
+
+			move.experience = moveObj.experience;
+
+			await move.save();
+		})
+
+		pokemon.experience = req.body.experience;
+
+		await pokemon.save();
+
+		res.send('updated!');
+	} catch(err) {
+		console.log(err);
+		res.send('Error showing show json');
+	}
+}
+
 module.exports = {
 	index,
 	new: newPokemon,
 	show,
 	create,
 	delete: deletePokemon,
+	update,
 }
