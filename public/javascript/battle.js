@@ -222,6 +222,7 @@ let firstMove;
 let movesForTurn;
 let messageArray;
 let previousMessage;
+let experience;
 
 // Dom elements
 
@@ -288,9 +289,11 @@ function messageProgression(event){
 				break;
 			}
 			case "win": {
+				message = `Gained experience.`
 				break;
 			}
 			case "lose": {
+				message = 'Try again'
 				break;
 			}
 			case "draw": {
@@ -299,6 +302,7 @@ function messageProgression(event){
 						message = `${p.name} fainted.`;
 						p.fainted = true;
 					}
+					messageArray.push('Gained experience')
 				})
 			}
 		}
@@ -528,6 +532,7 @@ async function getPokemonInfo(object, id) {
 	}
 }
 
+
 // Main Functions
 
 init();
@@ -561,27 +566,9 @@ function render() {
 		messageBoxEl.removeChild(messageBoxEl.lastChild);
 	}
 
-	if (playerPokemon.attacking) {
-		playerSprite.classList.add("attacking");
-		countdown(playerSprite);
-	} else {
-		playerSprite.classList.remove("attacking");
-	}
+	renderAttacking();
 
-	if (opponentPokemon.attacking) {
-		opponentSprite.classList.add("attacking");
-		countdown(opponentSprite);
-	} else {
-		opponentSprite.classList.remove("attacking");
-	}
-
-	if (playerPokemon.fainted) {
-		playerSprite.classList.add("fainted");
-	}
-
-	if (opponentPokemon.fainted) {
-		opponentSprite.classList.add("fainted");
-	}
+	renderFainted();
 
 	if (previousMessage = message) {
 		messageBoxEl.innerText = message;
@@ -611,6 +598,33 @@ function countdown(element) {
 		}
 		time --;
 	}, 200);
+}
+
+function renderAttacking() {
+	if (playerPokemon.attacking) {
+		playerSprite.classList.add("attacking");
+		countdown(playerSprite);
+	} else {
+		playerSprite.classList.remove("attacking");
+	}
+
+	if (opponentPokemon.attacking) {
+		opponentSprite.classList.add("attacking");
+		countdown(opponentSprite);
+	} else {
+		opponentSprite.classList.remove("attacking");
+	}
+
+}
+
+function renderFainted() {
+	if (playerPokemon.fainted) {
+		playerSprite.classList.add("fainted");
+	}
+
+	if (opponentPokemon.fainted) {
+		opponentSprite.classList.add("fainted");
+	}
 }
 
 function renderHealth() {

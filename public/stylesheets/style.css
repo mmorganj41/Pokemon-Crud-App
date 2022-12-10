@@ -333,12 +333,18 @@ a:visited {
 	position: relative;
 }
 .bar {
-	background: rgb(48, 41, 178);
+	background: rgb(43, 178, 41);
 	width: 100%;
 	height: 20px;
 	position: relative;
 	
 	transition: width .5s linear;
+}
+
+.lowhealth {
+	background: red;
+
+	animation: flashing .25s linear infinite;
 }
   
 .hit {
@@ -382,24 +388,22 @@ a:visited {
 
 #userpokemon .attacking {
 	--Xdirection: 5em;
-	animation: xaxis 1s linear ; 
+	animation: xaxis .5s linear 2 alternate; 
 }
 
 #userpokemon .attacking div {
 	--Ydirection: -5em;
-	--Yanimation: cubic-bezier(0.33333, 0, 0.66667, 0.33333);
-	animation: yaxis 1s cubic-bezier(0.33333, 0.66667, 0.66667, 1);
+	animation: yaxis .5s 2 alternate cubic-bezier(0.33333, 0.66667, 0.66667, 1);
 }
 
 #opponentpokemon .attacking {
 	--Xdirection: -7em;
-	animation: xaxis 1s linear alternate; 
+	animation: xaxis .5s linear 2 alternate; 
 }
 
 #opponentpokemon .attacking div {
 	--Ydirection: 3em;
-	--Yanimation: cubic-bezier(0.33333, 0.66667, 0.66667, 1);
-	animation: yaxis 1s cubic-bezier(0.33333, 0, 0.66667, 0.33333);
+	animation: yaxis .5s 2 cubic-bezier(0.33333, 0, 0.66667, 0.33333) alternate;
 }
 
 
@@ -414,14 +418,13 @@ a:visited {
 }
 
 @keyframes xaxis {
-	50% {
+	to {
 	  transform: translateX(var(--Xdirection));
 	}
  }
  @keyframes yaxis {
-	50% {
+	to {
 	  transform: translateY(var(--Ydirection));
-	  animation-timing-function: var(--Yanimation);
 	}
  }
 
@@ -433,3 +436,12 @@ a:visited {
 		height: 0;
 	}
  }
+ 
+ @keyframes flashing {
+    from, to { 
+        background-color: transparent;
+    }
+    50% { 
+        border-color: red;
+    }
+}
