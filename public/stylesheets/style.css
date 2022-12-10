@@ -208,10 +208,6 @@ a:visited {
 	margin: 50px;
 }
 
-.battlesprite {
-	animation: battleidle 2.25s linear infinite;
-}
-
 .battlesprite img{
 	transform: scale(1.5);
 }
@@ -368,12 +364,51 @@ a:visited {
 	justify-content: space-between;
 }
 
+.battlesprite {
+	animation: battleidle 2s ease-in-out infinite;
+}
+
+.playerattack {
+	--Xdirection: 5em;
+	animation: xaxis 1s linear ; 
+}
+
+.playerattack div {
+	--Ydirection: -5em;
+	--Yanimation: cubic-bezier(0.33333, 0, 0.66667, 0.33333);
+	animation: yaxis 1s cubic-bezier(0.33333, 0.66667, 0.66667, 1);
+}
+
+.opponentattack {
+	--Xdirection: -7em;
+	animation: xaxis 1s linear alternate; 
+}
+
+.opponentattack div {
+	--Ydirection: 3em;
+	--Yanimation: cubic-bezier(0.33333, 0.66667, 0.66667, 1);
+	animation: yaxis 1s cubic-bezier(0.33333, 0, 0.66667, 0.33333);
+}
+
+
 @keyframes battleidle {
     0% {
-		transform: translateX(-.2em) rotate(-5deg);
+		transform: translateX(-.2em) rotate(-3deg);
 	} 50% {
-		transform: translateX(.2em) rotate(5deg);
+		transform: translateX(.2em) rotate(3deg);
 	} 100% {
-		transform: translateX(-.2em) rotate(-5deg);
+		transform: translateX(-.2em) rotate(-3deg);
 	}
 }
+
+@keyframes xaxis {
+	50% {
+	  transform: translateX(var(--Xdirection));
+	}
+ }
+ @keyframes yaxis {
+	50% {
+	  transform: translateY(var(--Ydirection));
+	  animation-timing-function: var(--Yanimation);
+	}
+ }

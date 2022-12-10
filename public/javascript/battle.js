@@ -209,15 +209,14 @@ const stats = ['attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
 
 // Global Variables
 
-let winner;
 let message;
 let gameState;
 let weather;
+let firstClick;
 let firstMove;
 let movesForTurn;
 let messageArray;
 let previousMessage;
-let priorHealthValues;
 
 // Dom elements
 
@@ -244,28 +243,36 @@ battleController.addEventListener('click', messageProgression);
 // Callback Functions
 
 function messageProgression(event){ 
-	console.log(messageArray);
+
 	if (messageArray.length > 0) {
 		message = messageArray.shift();
-	} else if (typeof battlePath[gameState] === 'string' || battlePath[gameState].length === 1) {
-		gameState = battlePath[gameState]
 	} else {
 		switch (gameState) {
+			case "start":
+				gameState = battlePath[gameState];
+				break;
+			case "actions":
+				gameState = battlePath[gameState];
+				break;
 			case "fight":
 				if (event.target.classList.contains('move')) {
-					movesForTurn = turnParser(event.target.classList[0]);
+					turnParser(event.target.classList[0]);
 					if (gameState === 'playerMove') {
-						turnMove(true, movesForTurn.playerMove);
+						turnMove(playerPokemon, opponentPokemon);
+
 					} else if (gameState === 'opponentMove'){
-						turnMove(false, movesForTurn.opponentMove);
+						turnMove(opponentPokemon, playerPokemon);
+	
 					}
 				}
 				break;
 			case "playerMove": 
-				turnMove(true, movesForTurn.playerMove);
+				turnMove(playerPokemon, opponentPokemon);
+				
 				break;
 			case "opponentMove": {
-				turnMove(false, movesForTurn.opponentMove);
+				turnMove(opponentPokemon, playerPokemon)
+
 				break;
 			}
 			case "gameOver": {
@@ -325,20 +332,24 @@ function turnParser(playerMove) {
 		gameState = (playerMove.priority > opponentMove.Priority) ? "playerMove" : "opponentMove";
 	}
 
-	return {
-		playerMove,
-		opponentMove,
-	}
+	playerPokemon.currentMove = playerMove;
+	opponentPokemon.currentMove = opponentMove;
 
 }
 
-function turnMove(playerMoveBool, move) {
-	(playerMoveBool) ? 	moveParser(playerPokemon, move, opponentPokemon) : moveParser(opponentPokemon, move, playerPokemon);
+function turnMove(attacker, defender) {
+	moveParser(attacker, defender);
 	
 	message = messageArray.shift();
 
-	if (playerPokemon.hp[0] <= 0 || opponentPokemon.hp[0] <= 0) {
+	if (attacker.hp[0] <= 0 || defender.hp[0] <= 0) {
 		gameState = battlePath[gameState][2]
+		if (defender.hp[0] <= 0) {
+			messageArray.push(`${defender.name} fainted.`);
+		}
+		if (attacker.hp[0] <= 0) {
+			messageArray.push(`${attacker.name} fainted.`);
+		}
 	} else if (firstMove) {
 		firstMove = false;
 		gameState = battlePath[gameState][0];
@@ -347,7 +358,8 @@ function turnMove(playerMoveBool, move) {
 	}
 }
 
-function moveParser(attacker, move, defender) {
+function moveParser(attacker, defender) {
+	let move = attacker.currentMove;
 	messageArray.push([`${attacker.name} used ${move.name}.`]);
 	if (move.damageClass === "physical" || move.damageClass === "special") {
 		let burn = 1;
@@ -386,7 +398,6 @@ function moveParser(attacker, move, defender) {
 			messageArray.push("It's super effective!");
 		}
 
-		console.log(type);
 		let weatherMult = ((weather.state === "rain" && move.type === "water") || (weather.state === "harsh sunlight" && move.type === "fire")) ? 1.5 : 1;
 
 		let damage = Math.floor(((((2*attacker.level)/5+2)*move.power*attack/defense)/50+2)*weatherMult*critical*random*stab*type*burn);
@@ -396,7 +407,15 @@ function moveParser(attacker, move, defender) {
 }
 
 function endGame() {
+	if (playerPokemon.hp[0] <= 0 && opponentPokemon.hp[0] <= 0) {
+		
+	} else if (playerPokemon.hp[0] <= 0) {
 
+	} else if (opponentPokemon.hp[0] <= 0) {
+
+	} else {
+
+	}
 }
 
 function aiSelect(){
@@ -485,6 +504,7 @@ async function init() {
 	await getPokemonInfo(playerPokemon, playerId);
 	await getPokemonInfo(opponentPokemon, opponentId);
 
+
 	gameState = 'start';
 	messageArray = [];
 	message = `${opponentName.innerText} appeared.`
@@ -492,10 +512,9 @@ async function init() {
 		state: "normal", 
 		duration: Infinity
 	};
-	priorHealthValues = {
-		player: playerPokemon.hp[0],
-		opponent: opponentPokemon.hp[0],
-	}
+	playerPokemon.priorHealthValues = playerPokemon.hp[0];
+	opponentPokemon.priorHealthValues = opponentPokemon.hp[0];
+
 
 	render();
 }
@@ -507,8 +526,9 @@ function render() {
 		messageBoxEl.removeChild(messageBoxEl.lastChild);
 	}
 
-	if (['start', 'playerMove', 'opponentMove', 'gameOver'].includes(gameState)) {
+	if (previousMessage = message) {
 		messageBoxEl.innerText = message;
+		message = null;
 	} else {
 		messageBoxEl.innerText = null;
 		if (gameState === "actions"){
@@ -517,6 +537,8 @@ function render() {
 			renderMoves();
 		}
 	} 
+
+	previousMessage = messageBoxEl.innerText;
 }
 
 function renderHealth() {
@@ -525,16 +547,16 @@ function renderHealth() {
 
 	const player = {
 		barWidth: (currentPlayerHealth / playerPokemon.hp[1]) * 100,
-    	hitWidth: ((priorHealthValues.player - currentPlayerHealth) / priorHealthValues.player) * 100 + "%",
+    	hitWidth: ((playerPokemon.priorHealthValues - currentPlayerHealth) / playerPokemon.priorHealthValues) * 100 + "%",
 	}
 
 	const opponent = {
 		barWidth: (currentOpponentHealth / opponentPokemon.hp[1]) * 100,
-    	hitWidth: ((priorHealthValues.opponent - currentOpponentHealth) / priorHealthValues.opponent) * 100 + "%",
+    	hitWidth: ((opponentPokemon.priorHealthValues  - currentOpponentHealth) / opponentPokemon.priorHealthValues) * 100 + "%",
 	}
 
-	if(priorHealthValues.player !== currentPlayerHealth || priorHealthValues.opponent !== currentOpponentHealth) {
-		console.log("RENDERING HBAR")
+	if(playerPokemon.priorHealthValues !== currentPlayerHealth || opponentPokemon.priorHealthValues !== currentOpponentHealth) {
+	
 		playerHit.style.width = player.hitWidth;
 		opponentHit.style.width = opponent.hitWidth;
 
@@ -549,8 +571,8 @@ function renderHealth() {
 	playerHp.innerText = `${playerPokemon.hp[0]} / ${playerPokemon.hp[1]}`;
 	opponentHp.innerText = `${opponentPokemon.hp[0]} / ${opponentPokemon.hp[1]}`;
 
-	priorHealthValues.player = currentPlayerHealth;
-	priorHealthValues.opponent = currentOpponentHealth;
+	playerPokemon.priorHealthValues= currentPlayerHealth;
+	opponentPokemon.priorHealthValues = currentOpponentHealth;
 }
 
 function renderActions() {
