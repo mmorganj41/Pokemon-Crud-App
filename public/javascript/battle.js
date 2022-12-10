@@ -6,12 +6,17 @@ const opponentId = window.location.pathname.match(/(?<=battle\/)\w*/)[0];
 const playerPokemon = {};
 const opponentPokemon = {};
 
+const delay = 4;
+
+const pokemonArray = [playerPokemon, opponentPokemon] 
+
 const battlePath = {
 	start: 'actions',
 	actions: 'fight',
 	fight: ['playerMove', 'opponentMove'],
 	playerMove: ['opponentMove', 'actions', 'gameOver'],
 	opponentMove: ['playerMove', 'actions', 'gameOver'],
+	gameOver: ['win', 'lose', 'draw'],
 }
 
 const moveDamage = {
@@ -243,6 +248,9 @@ battleController.addEventListener('click', messageProgression);
 // Callback Functions
 
 function messageProgression(event){ 
+	pokemonArray.forEach(p => {
+		p.attacking = false;
+	})
 
 	if (messageArray.length > 0) {
 		message = messageArray.shift();
@@ -277,6 +285,21 @@ function messageProgression(event){
 			}
 			case "gameOver": {
 				endGame();
+				break;
+			}
+			case "win": {
+				break;
+			}
+			case "lose": {
+				break;
+			}
+			case "draw": {
+				pokemonArray.forEach(p => {
+					if (!p.faintFirst) {
+						message = `${p.name} fainted.`;
+						p.fainted = true;
+					}
+				})
 			}
 		}
 	}
@@ -309,7 +332,6 @@ function accEvadeMultiplier(stat) {
 
 function turnParser(playerMove) {
 	firstMove = true;
-	const pokemonArray = [playerPokemon, opponentPokemon];
 	playerMove = playerPokemon.moves.find(move => move.name === playerMove) || struggle;
 	
 	if (!playerMove.pp[0]) {
@@ -341,14 +363,14 @@ function turnMove(attacker, defender) {
 	moveParser(attacker, defender);
 	
 	message = messageArray.shift();
+	attacker.attacking = true;
 
 	if (attacker.hp[0] <= 0 || defender.hp[0] <= 0) {
 		gameState = battlePath[gameState][2]
 		if (defender.hp[0] <= 0) {
-			messageArray.push(`${defender.name} fainted.`);
-		}
-		if (attacker.hp[0] <= 0) {
-			messageArray.push(`${attacker.name} fainted.`);
+			defender.faintFirst = true;
+		} else {
+			attacker.faintFirst = true;
 		}
 	} else if (firstMove) {
 		firstMove = false;
@@ -408,13 +430,23 @@ function moveParser(attacker, defender) {
 
 function endGame() {
 	if (playerPokemon.hp[0] <= 0 && opponentPokemon.hp[0] <= 0) {
-		
+		pokemonArray.forEach(p => {
+			if (p.faintFirst) {
+				message = `${p.name} fainted.`;
+				gameState = battlePath[gameState][2];
+				p.fainted = true;
+			}
+		})
 	} else if (playerPokemon.hp[0] <= 0) {
-
+		message = `${playerPokemon.name} fainted.`;
+		gameState = battlePath[gameState][1];
+		playerPokemon.fainted = true;
 	} else if (opponentPokemon.hp[0] <= 0) {
-
+		message = `${opponentPokemon.name} fainted.`;
+		gameState = battlePath[gameState][0];
+		opponentPokemon.fainted = true;
 	} else {
-
+		message = 'error.';
 	}
 }
 
@@ -514,7 +546,10 @@ async function init() {
 	};
 	playerPokemon.priorHealthValues = playerPokemon.hp[0];
 	opponentPokemon.priorHealthValues = opponentPokemon.hp[0];
-
+	playerPokemon.attacking = false;
+	opponentPokemon.attacking = false;
+	playerPokemon.fainted = false;
+	opponentPokemon.fainted = false;
 
 	render();
 }
@@ -524,6 +559,28 @@ function render() {
 
 	while (messageBoxEl.firstChild) {
 		messageBoxEl.removeChild(messageBoxEl.lastChild);
+	}
+
+	if (playerPokemon.attacking) {
+		playerSprite.classList.add("attacking");
+		countdown(playerSprite);
+	} else {
+		playerSprite.classList.remove("attacking");
+	}
+
+	if (opponentPokemon.attacking) {
+		opponentSprite.classList.add("attacking");
+		countdown(opponentSprite);
+	} else {
+		opponentSprite.classList.remove("attacking");
+	}
+
+	if (playerPokemon.fainted) {
+		playerSprite.classList.add("fainted");
+	}
+
+	if (opponentPokemon.fainted) {
+		opponentSprite.classList.add("fainted");
 	}
 
 	if (previousMessage = message) {
@@ -539,6 +596,21 @@ function render() {
 	} 
 
 	previousMessage = messageBoxEl.innerText;
+}
+
+function countdown(element) {
+	let time = delay;
+	const countdown = setInterval(() => {
+		console.log(countdown);
+		if (time <= 0) {
+			console.log("i'm working");
+			element.classList.remove("attacking");
+			console.log(element.classList);
+					
+			clearInterval(countdown)    
+		}
+		time --;
+	}, 200);
 }
 
 function renderHealth() {

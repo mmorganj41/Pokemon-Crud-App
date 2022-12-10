@@ -365,26 +365,38 @@ a:visited {
 }
 
 .battlesprite {
-	animation: battleidle 2s ease-in-out infinite;
+		animation: battleidle 2s ease-in-out infinite;
 }
 
-.playerattack {
+#opponentpokemon .fainted {
+	overflow: hidden;
+	--Yfaint: 0;
+	animation: fainting 1s ease forwards;
+}
+
+#userpokemon .fainted {
+	overflow: hidden;
+	--Yfaint: 4em;
+	animation: fainting 1s ease forwards;
+}
+
+#userpokemon .attacking {
 	--Xdirection: 5em;
 	animation: xaxis 1s linear ; 
 }
 
-.playerattack div {
+#userpokemon .attacking div {
 	--Ydirection: -5em;
 	--Yanimation: cubic-bezier(0.33333, 0, 0.66667, 0.33333);
 	animation: yaxis 1s cubic-bezier(0.33333, 0.66667, 0.66667, 1);
 }
 
-.opponentattack {
+#opponentpokemon .attacking {
 	--Xdirection: -7em;
 	animation: xaxis 1s linear alternate; 
 }
 
-.opponentattack div {
+#opponentpokemon .attacking div {
 	--Ydirection: 3em;
 	--Yanimation: cubic-bezier(0.33333, 0.66667, 0.66667, 1);
 	animation: yaxis 1s cubic-bezier(0.33333, 0, 0.66667, 0.33333);
@@ -410,5 +422,14 @@ a:visited {
 	50% {
 	  transform: translateY(var(--Ydirection));
 	  animation-timing-function: var(--Yanimation);
+	}
+ }
+
+ @keyframes fainting {
+	from {
+		height: 96px;
+	} to {
+		transform: translateY(var(--Yfaint));
+		height: 0;
 	}
  }
