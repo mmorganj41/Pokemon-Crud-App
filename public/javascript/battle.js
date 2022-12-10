@@ -10,9 +10,12 @@ const delay = 4;
 
 const pokemonArray = [playerPokemon, opponentPokemon] 
 
+const damageClasses = ['physical', 'special', 'status']
+
 const battlePath = {
 	start: 'actions',
-	actions: 'fight',
+	actions: ['fight', 'info'],
+	info: ['pokemon', 'moves'],
 	fight: ['playerMove', 'opponentMove'],
 	playerMove: ['opponentMove', 'actions', 'gameOver'],
 	opponentMove: ['playerMove', 'actions', 'gameOver'],
@@ -222,11 +225,13 @@ let firstMove;
 let movesForTurn;
 let messageArray;
 let gainedExperience;
+let move;
 
 // Dom elements
 
 const battleController = document.getElementById('battleactions')
 const messageBoxEl = document.getElementById('messagebox');
+const infoPanelEl = document.getElementById('infopanel');
 
 playerPokemon.elements = {};
 opponentPokemon.elements = {};
@@ -261,7 +266,11 @@ async function messageProgression(event){
 				gameState = battlePath[gameState];
 				break;
 			case "actions":
-				gameState = battlePath[gameState];
+				if (event.target.innerText === "Fight") {
+					gameState = battlePath[gameState][0];
+				} else if (event.target.innerText == "Info") {
+					gameState = battlePath[gameState][1];
+				} 				
 				break;
 			case "fight":
 				if (event.target.classList.contains('move')) {
@@ -273,6 +282,8 @@ async function messageProgression(event){
 						turnMove(opponentPokemon, playerPokemon);
 	
 					}
+				} else if (event.target.id === "back") {
+					gameState = "actions";
 				}
 				break;
 			case "playerMove": 
@@ -284,6 +295,35 @@ async function messageProgression(event){
 
 				break;
 			}
+			case "info":
+				if (event.target.innerText === "Pokemon") {
+					gameState = battlePath[gameState][0];
+				} else if (event.target.innerText == "Moves") {
+					gameState = battlePath[gameState][1];
+				} else if (event.target.id === "back") {
+					gameState = "actions";
+				}
+				break;
+			case "pokemon":
+				if (event.target.id === "back") {
+					gameState = "info";
+				}
+				break;
+			case "moves":
+				if (event.target.classList.contains('move')) {
+					move = playerPokemon.moves.find(m =>  event.target.classList.contains(m.name));
+					gameState = 'onemove';
+				} else if (event.target.id === "back") {
+					gameState = "info";
+				}
+				break;
+			case "onemove":
+				if (event.target.classList.contains('move')) {
+					move = playerPokemon.moves.find(m =>  event.target.classList.contains(m.name));
+				} else if (event.target.id === "back") {
+					gameState = "moves";
+				}
+				break;
 			case "gameOver": {
 				endGame();
 				break;
@@ -352,7 +392,7 @@ async function updateExperience(experience) {
 
 		if (newLevel !== playerPokemon.level) {
 			playerPokemon.level = newLevel;
-			prepareMessage(`${playerPokemon.elements.nameEl.innerText} reached level ${playerPokemon.level}`);
+			prepareMessage(`${playerPokemon.elements.nameEl.innerText} reached level ${playerPokemon.level}.`);
 		}
 
 		gameState = 'redirect';
@@ -416,9 +456,6 @@ function turnParser(playerMove) {
 
 function turnMove(attacker, defender) {
 	moveParser(attacker, defender);
-	
-	message = messageArray.shift();
-	attacker.attacking = true;
 
 	if (attacker.hp[0] <= 0 || defender.hp[0] <= 0) {
 		gameState = battlePath[gameState][2]
@@ -437,14 +474,27 @@ function turnMove(attacker, defender) {
 
 function moveParser(attacker, defender) {
 	let move = attacker.currentMove;
-	prepareMessage([`${attacker.elements.nameEl.innerText} used ${move.name}.`]);
+	prepareMessage(`${attacker.elements.nameEl.innerText} used ${move.name}.`);
+	
+	switch (move.damageClass) {
+		case damageClasses[0]:
+			attacker.attacking = damageClasses[0];
+			break;
+		case damageClasses[1]:
+			attacker.attacking = damageClasses[1];
+			break;
+		case damageClasses[2]:
+			attacker.attacking = damageClasses[2];
+			break;
+	}
+
 	if (move.damageClass === "physical" || move.damageClass === "special") {
 		let burn = 1;
 		let attack;
 		let defense;
 		let random = (Math.random()*15+85)/100;
 		let critical = (Math.random() < attacker.critRate.value*(3**(move.meta.crit_rate+attacker.critRate.stage))) ? 1.5 : 1;
-		if (critical === 1.5) prepareMessage('Critical Hit.')
+		if (critical === 1.5) prepareMessage('Critical Hit!')
 		if (move.damageClass === "physical") {
 			if (attacker.status.state === "burn") burn = .5
 			if (critical === 1.5) {
@@ -531,6 +581,9 @@ async function getPokemonInfo(object, id) {
 		object.types = pokemon.data.types;
 		object.experience = pokemon.data.experience;
 		object.level = pokemonLevel(pokemon.data.experience);
+		object.trainer = pokemon.data.trainer;
+		object.images = pokemon.data.images;
+		object.nature = pokemon.data.nature;
 		
 		let statTotal = 0;
 		stats.forEach(stat => {
@@ -616,6 +669,8 @@ async function init() {
 }
 
 function render() {
+	infoPanelEl.classList.add('hidden');
+
 	renderHealth();
 
 	while (messageBoxEl.firstChild) {
@@ -628,17 +683,32 @@ function render() {
 
 	renderLevelUp();
 
-	if (message) {
-		messageBoxEl.innerText = message;
-		message = null;
-	} else {
+	messageBoxEl.innerText = message;
+		
+	if (!message) {
 		messageBoxEl.innerText = null;
-		if (gameState === "actions"){
-			renderActions();
-		} else if (gameState === "fight"){
-			renderMoves();
-		} 
+		switch (gameState) {
+			case "actions":
+				renderActions();
+				break;
+			case "fight":
+				renderMoves();
+				break;
+			case "info":
+				renderInfo();
+				break;
+			case "pokemon":
+				renderPokemon();
+				break;
+			case "moves":
+				renderMoves();
+				break; 
+			case "onemove":
+				renderOneMove();
+				break;
+		}
 	} 
+	message = null;
 
 }
 
@@ -646,11 +716,11 @@ function renderLevelUp() {
 	playerPokemon.elements.levelEl.innerText = playerPokemon.level;
 }
 
-function countdown(element) {
+function countdown(element, className) {
 	let time = delay;
 	const countdown = setInterval(() => {
 		if (time <= 0) {
-			element.classList.remove("attacking");
+			element.classList.remove(className);
 					
 			clearInterval(countdown)    
 		}
@@ -660,12 +730,14 @@ function countdown(element) {
 
 function renderAttacking() {
 	pokemonArray.forEach(pokemon => {
-		if (pokemon.attacking) {
-			pokemon.elements.spriteEl.classList.add("attacking");
-			countdown(pokemon.elements.spriteEl);
-		} else {
-			pokemon.elements.spriteEl.classList.remove("attacking");
-		}
+		damageClasses.forEach(type => {
+			if (pokemon.attacking === type) {
+				pokemon.elements.spriteEl.classList.add(type);
+				countdown(pokemon.elements.spriteEl, type);
+			} else {
+				pokemon.elements.spriteEl.classList.remove(type);
+			}
+		})
 	})
 }
 
@@ -714,9 +786,89 @@ function renderHealth() {
 }
 
 function renderActions() {
-	let fightEl = document.createElement('div');
-	fightEl.innerText = 'Fight';
-	messageBoxEl.append(fightEl);
+	battlePath.actions.forEach(name => {
+		const element = document.createElement('div');
+		element.innerText = name.replace(/^[a-z]/, (letter) => letter.toUpperCase());
+		messageBoxEl.append(element);
+	})
+}
+
+function renderInfo() {
+	battlePath.info.forEach(name => {
+		const element = document.createElement('div');
+		element.innerText = name.replace(/^[a-z]/, (letter) => letter.toUpperCase());
+		messageBoxEl.append(element);
+	})
+
+	renderBackButton();
+}
+
+function renderPokemon() {
+	infoPanelEl.classList.remove("hidden");
+	infoPanelEl.innerHTML = `<div><div id="sprite">
+		<div><img src="${playerPokemon.images[0]}" alt="${playerPokemon.images[0]}"></div><div><h3>${playerPokemon.name[0].toUpperCase() + playerPokemon.name.substring(1, playerPokemon.name.length)}</h3></div>
+	</div>
+	<div>
+		<div>
+			<div><h3>Info</h3></div>
+			<div>
+				<div><div>Nickname:&nbsp;</div><div>${playerPokemon.elements.nameEl.innerText}</div></div>
+				<div><div>Level:&nbsp;</div><div>${playerPokemon.level}(${playerPokemon.experience})</div></div>
+				<div><div>Type:&nbsp;</div><div id="types">
+					<div>${playerPokemon.types[0]}</div><div>${playerPokemon.types[1] || ''}</div>
+				</div></div>
+				<div><div>Nature:&nbsp;</div><div>${playerPokemon.nature}</div></div>
+				<div><div>Trainer:&nbsp;</div><div>${playerPokemon.trainer}</div></div>
+			</div>
+		</div>
+		<div>
+			<div><h3>Stats</h3></div>
+			<div>
+				<div><div>HP:&nbsp;</div><div>${playerPokemon.hp[1]}</div></div>
+				<div><div>ATK:&nbsp;</div><div>${playerPokemon.attack.value}</div></div>
+				<div><div>DEF:&nbsp;</div><div>${playerPokemon.defense.value}</div></div>
+				<div><div>SPD:&nbsp;</div><div>${playerPokemon.speed.value}</div></div>
+				<div><div>SATK:&nbsp;</div><div>${playerPokemon.specialAttack.value}</div></div>
+				<div><div>SDEF:&nbsp;</div><div>${playerPokemon.specialDefense.value}</div></div>
+			</div>
+		</div>
+	</div>
+</div>`;
+
+	renderBackButton();
+}
+
+function renderOneMove() {
+	renderMoves();
+	infoPanelEl.classList.remove("hidden");
+	infoPanelEl.innerHTML = `<div><div id="movetable">
+		<table >
+			<tr>
+				<th>Name</th>
+				<th>Type</th>
+				<th>Class</th>
+			</tr>
+				<td>${move.name}</td>
+				<td>${move.type} </td>
+				<td>${move.damageClass} </td>
+			</tr>
+				<th>Power</th>
+				<th>PP</th>
+				<th>Level</th>
+			<tr>
+			<tr>
+				<td>${move.power}</td>
+				<td>${move.pp[0]}/${move.pp[1]} </td>
+				<td>${move.level} (${move.experience})</td>
+			</tr>		
+		</table>
+		<div id="moveinfo">
+			<div class="headers">Info</div>
+			<div id="info">${move.info} </div>
+		</div>
+	</div>
+</div>`;
+
 }
 
 function renderMoves() {
@@ -757,4 +909,12 @@ function renderMoves() {
 			messageBoxEl.append(moveEl);
 		})
 	}
+	renderBackButton();
+}
+
+function renderBackButton() {
+	let backEl = document.createElement("div");
+	backEl.innerText = "⇚ Back";
+	backEl.id = 'back';
+	messageBoxEl.append(backEl);
 }

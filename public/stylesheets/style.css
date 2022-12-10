@@ -219,7 +219,84 @@ a:visited {
 	width: 680px;
 	height: 383px;
 	user-select: none;
+	position: relative;
 }
+
+#infopanel {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	background: white;
+	display: block;
+	z-index: 999;
+	color: black;
+}
+
+#infopanel #movetable {
+	padding: 5px;
+}
+
+#infopanel th {
+	padding: 5px;
+}
+
+#infopanel td {
+	padding: 1px;
+}
+
+#infopanel #moveinfo > div{
+	padding: 0;
+	margin: 0;
+	font-size: 8px;
+}
+
+#infopanel > div {
+	height: 85%;
+	margin: 25px;
+	display: flex;
+	flex-direction: row;
+	align-content: center;
+	background-color: #131516;
+	border-radius: 10px;
+	justify-content: space-evenly;
+}
+
+#infopanel > div > div {
+	background-color: white;
+	border-radius: 10px;
+	margin: 25px;
+	margin-top: auto;
+	margin-bottom: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+#infopanel > div > div > div {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin: 10px 25px;
+}
+
+#infopanel > div > div > div > div> div > div:first-child{
+	font-weight: 700;
+}
+
+#infopanel > div > div > div > div {
+	display: flex;
+	flex-direction: row;
+}
+
+#infopanel > div > div > div > div > div {
+	padding: 5px;
+}
+
+.hidden {
+	visibility: hidden;
+}
+
+
 
 #opponentpokemon {
 	display: flex;
@@ -244,7 +321,7 @@ a:visited {
 	border-bottom-right-radius: 10px;
 	flex-basis: auto;
 	width: 680px;
-	height: 200px;
+	height: 250px;
 	user-select: none;
 }
 
@@ -255,7 +332,7 @@ a:visited {
 	color: black;
 	border: black solid 5px;
 	border-radius: 10px;
-	height: 150px;
+	height: 200px;
 	padding: 10px;
 	display: flex;
 	flex-direction: column;
@@ -304,6 +381,11 @@ a:visited {
      0    1px 0 #000,
     -1px  1px 0 #000,
     -1px  0   0 #000;
+}
+
+#back {
+	margin-top: auto;
+	align-self: flex-end;
 }
 
 .info div {
@@ -374,6 +456,15 @@ a:visited {
 	justify-content: space-between;
 }
 
+.name {
+	display: flex;
+	align-items: center;
+}
+
+.state {
+	padding-left: 5px;
+}
+
 .battlesprite {
 		animation: battleidle 2s ease-in-out infinite;
 }
@@ -390,26 +481,41 @@ a:visited {
 	animation: fainting 1s ease forwards;
 }
 
-#userpokemon .attacking {
+#userpokemon .physical {
 	--Xdirection: 5em;
 	animation: xaxis .5s linear 2 alternate; 
 }
 
-#userpokemon .attacking div {
+#userpokemon .physical div {
 	--Ydirection: -5em;
 	animation: yaxis .5s 2 alternate cubic-bezier(0.33333, 0.66667, 0.66667, 1);
 }
 
-#opponentpokemon .attacking {
+#opponentpokemon .physical {
 	--Xdirection: -7em;
 	animation: xaxis .5s linear 2 alternate; 
 }
 
-#opponentpokemon .attacking div {
+#opponentpokemon .physical div {
 	--Ydirection: 3em;
 	animation: yaxis .5s 2 cubic-bezier(0.33333, 0, 0.66667, 0.33333) alternate;
 }
 
+#userpokemon .special {
+	--Xdirection: 1em;
+	--Ydirection: -.5em;
+	animation: grow 1s ease-in 1;
+}
+
+#opponentpokemon .special {
+	--Xdirection: -1em;
+	--Ydirection: .5em;
+	animation: grow 1s ease-in 1;
+}
+
+.status {
+	animation: backandforth 1s linear 1;
+}
 
 @keyframes battleidle {
     0% {
@@ -429,6 +535,30 @@ a:visited {
  @keyframes yaxis {
 	to {
 	  transform: translateY(var(--Ydirection));
+	}
+ }
+
+ @keyframes grow {
+    0% {
+		transform: scale(1) translateX(0) translateY(0);
+	} 75% {
+		transform: scale(1.25) translateX(var(--Xdirection)) translateY(var(--Ydirection));
+	} 100% {
+		transform: scale(1) translateX(0) translateY(0);
+	}
+ }
+
+ @keyframes backandforth {
+	0% {
+		transform: translateX(0);
+	} 25% {
+		transform: translateX(2em);
+	} 50% {
+		transform: translateX(0);
+	} 75% {
+		transform: translateX(-2em);
+	} 100% {
+		transform: translateX(0);
 	}
  }
 

@@ -1,11 +1,15 @@
 <%- include('../partials/header') %>
 <h1>Battle!</h1>
+
 <div id="battleground">
+	<div id="infopanel">
+	
+	</div>
 	<div id="opponentpokemon">
 		<div class="info"> 
 			<div>
 				<div class="name">
-					<h3><%= (opponent.nickname) ? opponent.nickname : opponent.name %> </h3>
+					<h3><%= (opponent.nickname) ? opponent.nickname : opponent.name %></h3><div class="state"></div>
 				</div>
 				<div>
 					<h3>Lvl. <span class="level"><%= opponent.level %> </span></h3>
@@ -29,7 +33,7 @@
 		<div class="info"> 
 			<div>
 				<div class="name">
-					<h3><%= (pokemon.nickname) ? pokemon.nickname : pokemon.name %> </h3>
+					<h3><%= (pokemon.nickname) ? pokemon.nickname : pokemon.name %> </h3> <div class="state"></div>
 				</div>
 				<div>
 					<h3>Lvl. <span class="level"><%= pokemon.level %> </span></h3>
@@ -43,6 +47,7 @@
 			</div>
 		</div>
 	</div>
+
 </div>
 <div id="battleactions">
 	<div id="messagebox">

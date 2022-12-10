@@ -69,13 +69,12 @@ async function show(req, res, next) {
 		});
 
 		const moves = await Move.find({pokemon: pokemon._id});
-		const moveNames = moves.map(move => move.name.replace('-', ' '));
+		const moveNames = moves.map(move => move.name);
 		pokemon.moves = moves;
 
 		const moveOptions = pokemonQuery.data.moves.reduce((filtered, moveData) => {
 			const learnMethod = moveData.version_group_details[0].move_learn_method.name;
 			const levelLearned = moveData.version_group_details[0].level_learned_at;
-			moveData.move.name = moveData.move.name.replace('-', ' ')
 			const moveName = moveData.move.name;
 	
 			if (!(moveNames.includes(moveName)) && levelLearned <= pokemonLevel && (learnMethod === 'egg' || learnMethod === 'level-up')) {
