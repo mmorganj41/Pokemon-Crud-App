@@ -187,7 +187,8 @@ const moveDamage = {
 		dragon: 2,
 		dark: 2,
 		steel: .5,
-	}
+	},
+	base: {},
 }
 
 const struggle = {
@@ -213,6 +214,39 @@ const struggle = {
 		drain: 0,
 		flinch_chance: 0,
 		healing: -25,
+		max_hits: null,
+		max_turns: null,
+		min_hits: null,
+		min_turns: null,
+		stat_chance: 0,
+	},
+	effectChance: null,
+	priority: 0,
+}
+
+const confusedAttack = {
+	name: "confused",
+	damageClass: "physical",
+	type: 'base',
+	accuracy: null,
+	power: 40,
+	pp: [Infinity, Infinity],
+	target: "random-opponent",
+	statchange: [],
+	meta: {
+		ailment: {
+			name: "none",
+			url: "https://pokeapi.co/api/v2/move-ailment/0/"
+		},
+		ailment_chance: 0,
+		category: {
+			name: "damage",
+			url: "https://pokeapi.co/api/v2/move-category/0/",
+		},
+		crit_rate: null,
+		drain: 0,
+		flinch_chance: 0,
+		healing: 0,
 		max_hits: null,
 		max_turns: null,
 		min_hits: null,
@@ -439,20 +473,24 @@ function turnParser(playerMove) {
 	firstMove = true;
 	playerMove = playerPokemon.moves.find(move => move.name === playerMove) || struggle;
 	
-	pokemonArray.forEach(pokemon => {
-		pokemon.flinch = false;
-	})
-
 	if (!playerMove.pp[0]) {
-		message = "That move is out of PP, select another.";
+		prepareMessage("That move is out of PP, select another.");
 		gameState = "actions";
 		return;
-	} 
+	} else if (playerPokemon.status.disable && playerPokemon.disabledMove === playerMove) {
+		prepareMessage("That move is disabled, select another.");
+		gameState = "actions";
+		return;
+	} else if (playerPokemon.status.torment && playerPokemon.previousMove == playerMove) {
+		prepareMessage("Cannot use the same move in a row due to torment, select another.");
+		gameState = "actions";
+		return;
+	}
 
 	let opponentMove = aiSelect();
 
-	let playerSpeed = playerPokemon.speed.value*stageMultipliers(playerPokemon.speed.state)*((playerPokemon.status[0].state === "paralysis") ? .5 : 1)
-	let opponentSpeed = opponentPokemon.speed.value*stageMultipliers(opponentPokemon.speed.state)*((opponentPokemon.status[0].state === "paralysis") ? .5 : 1)
+	let playerSpeed = playerPokemon.speed.value*stageMultipliers(playerPokemon.speed.state)*((playerPokemon.status.main.state === "paralysis") ? .5 : 1)
+	let opponentSpeed = opponentPokemon.speed.value*stageMultipliers(opponentPokemon.speed.state)*((opponentPokemon.status.main.state === "paralysis") ? .5 : 1)
 	if (playerMove.priority === opponentMove.priority) {
 		if (playerSpeed === opponentSpeed) {
 			gameState = Math.round(Math.random()) ? "playerMove" : "opponentMove";
@@ -461,7 +499,6 @@ function turnParser(playerMove) {
 		}
 	} else {
 		gameState = (playerMove.priority > opponentMove.priority) ? "playerMove" : "opponentMove";
-		console.log(gameState);
 	}
 
 	playerPokemon.currentMove = playerMove;
@@ -470,10 +507,11 @@ function turnParser(playerMove) {
 }
 
 function turnMove(attacker, defender) {
-	if (preAct(attacker)) {
+	if (preAct(attacker, defender)) {
 		moveParser(attacker, defender);
 	}
 
+	postAct(attacker, defender);
 	if (attacker.hp[0] <= 0 || defender.hp[0] <= 0) {
 		gameState = battlePath[gameState][2]
 		if (defender.hp[0] <= 0) {
@@ -489,74 +527,135 @@ function turnMove(attacker, defender) {
 	}
 }
 
-function preAct(attacker) {
+function preAct(attacker, defender) {
+	let canAct = true;
 
-	if(attacker.flinch) {
-
+	for (let state in attacker.status) {
+		if (state === 'main') {
+			if (attacker.status[state].duration <= 0) {
+				attacker.status[state].state = 'none';
+				prepareMessage(`${state} wore off.`)
+			};
+		} else {
+			if (attacker.status[state].duration <= 0) {
+				attacker.status[state] = undefined;
+				prepareMessage(`${state} wore off.`);
+				if (state === 'disable') {
+					attacker.disabledMove = undefined;
+				}
+				if (state === 'yawn' && attacker.status.main.state === 'none') {
+					prepareMessage(`${attacker.elements.nameEl.innerText} fell asleep.`);
+				}
+			};
+		}	
 	}
 	
-	switch (attacker.status[0].state) {
-		// case "burn":
-		// 	prepareMessage(`${attacker.elements.nameEl.innerText} took damage from its burn.`);
-		// 	return (healthDegeneration(attacker, 12.5));
-		// case "poison":
-		// 	prepareMessage(`${attacker.elements.nameEl.innerText} took damage from poison.`);
-		// 	return (healthDegeneration(attacker, 12.5));
-		// case "confusion":
-		// 	prepareMessage(`${attacker.elements.nameEl.innerText} is confused.`);
-		// 	if (Math.random()*100 < 25) {
-		// 		healthDegeneration(attacker, 12.5);
-		// 		prepareMessage(`${attacker.elements.nameEl.innerText} hurt itself in the confusion.`);
-		// 		return false;
-		// 	} else {
-		// 		return true;
-		// 	}
+
+
+	switch (attacker.status.main.state) {
 		case "freeze":
 			if (Math.random()*100 < 20) {
-				attacker.status[0].state = "none";
-				attacker.status[0].duration = Infinity;
+				attacker.status.main.state = "none";
+				attacker.status.main.duration = Infinity;
 				prepareMessage(`${attacker.elements.nameEl.innerText} was unfrozen!`);
-				return true;
+
 			} else {
 				prepareMessage(`${attacker.elements.nameel.innerText} is frozen solid.`);
-				return false;
+				canAct = false;
 			}
 		case "sleep":
-			if (attacker.status[0].duration <= 0) {
-				attacker.status[0].state = "none";
-				attacker.status[0].duration = Infinity;
-				prepareMessage(`${attacker.elements.nameEl.innerText} woke up!`);
-				return true;
-			} else {
-				prepareMessage(`${attacker.elements.nameel.innerText} is fast asleep.`);
-				return false;
-			}
+			prepareMessage(`${attacker.elements.nameel.innerText} is fast asleep.`);
+			canAct = false;
 		case "paralysis":
-			console.log('running')
 			if (Math.random()*100 < 25)	{
-				prepareMessage(`${attacker.elements.nameEl.innerText} is paralyzed.`);
-				console.log('false');
-				return false;
-			} else {
-				console.log('true');
-				return true;
-			}
-		// case "infatuation":
-		// 	if (Math.random()*100 < 50)	{
-		// 		prepareMessage(`${attacker.elements.nameEl.innerText} is infatuated.`);
-		// 		return false;
-		// 	} else {
-		// 		return true;
-		// 	}
-		default:
-			return true;
+				prepareMessage(`${attacker.elements.nameEl.innerText} is paralyzed and cannot move.`);
+				canAct = false;
+			} 
 	}
 
+	if (canAct) {
+		if (attacker.status.confusion){
+			prepareMessage(`${attacker.elements.nameEl.innerText} is confused.`);
+			if (Math.random()*100 < 50) {
+				damageParser(attacker, confusedAttack ,attacker);
+				prepareMessage(`${attacker.elements.nameEl.innerText} hurt itself in the confusion.`);
+				canAct = false;
+			} 
+		}
+		if (attacker.status.infatuation){
+			if (Math.random()*100 < 50)	{
+				prepareMessage(`${attacker.elements.nameEl.innerText} is infatuated.`);
+				canAct =  false;
+			}
+		}
+	}
+
+	if (defender.status.notypeimmunity > 0) {
+		defender.evasion.state = Math.max(0, defender.evasion.state);
+	}
+
+	return canAct;
+}
+
+function postAct(attacker, defender) {
+	attacker.previousMove = attacker.currentMove;
+
+	if (attacker.status.ingrain > 0) {
+		let healing = healthRegeneration(attacker, 8.25);
+		if (healing !== null) {
+			prepareMessage(`${attacker.eleements.nameEl.innerText} healed some health.`)
+		}
+	}
+
+	switch (attacker.status.main.state) {
+		case "burn":
+			prepareMessage(`${attacker.elements.nameEl.innerText} took damage from its burn.`);
+			healthDegeneration(attacker, 12.5);
+			break;
+		case "poison":
+			prepareMessage(`${attacker.elements.nameEl.innerText} took damage from poison.`);
+			healthDegeneration(attacker, 12.5);
+			break;
+	}
+
+	if (attacker.status.leechseed > 0) {
+		let previousHealth = attacker.hp[0];
+		healthDegeneration(attacker, 12.5);
+		healing = previousHealth - attacker.hp[0];
+		defender.hp[0] = (healing + defender.hp[0] > defender.hp[1]) ? defender.hp[1] : healing + defender.hp[0];
+		prepareMessage(`${attacker.elements.nameEl.innerText} was drained.`);
+	}
+	if (attacker.status.trap > 0) {
+		healthDegeneration(attacker, 8.25);
+		prepareMessage(`${attacker.elements.nameEl.innerText} took damage from being trapped.`);
+	}
+	if (attacker.status.nightmare > 0) {
+		if (attacker.status.main.state === 'sleep') {
+			healthDegeneration(attacker, 25);
+			prepareMessage(`${attacker.elements.nameEl.innerText} is having a nightmare.`);
+		} else {
+			attacker.status.nightmare = undefined;
+		}
+	}
+
+
+
+	for (let state in attacker.status) {
+		if (state === 'main') {
+			attacker.status[state].duration --;
+		} else {
+			attacker.status[state] --;
+		}
+	}
+
+	if (attacker.status.perishsong === 0) {
+		attacker.hp[0] = 0;
+	}
 
 }
 
 function healthDegeneration(attacker, percent) {
-	let totalHealth = Math.round(attacker.hp[0] + percent * attacker.hp[1] / 100);
+	let totalHealth = Math.ceil(attacker.hp[0] - percent * attacker.hp[1] / 100);
 	if (totalHealth < 0) {
 		attacker.hp[0] = 0;
 		return false;
@@ -566,9 +665,20 @@ function healthDegeneration(attacker, percent) {
 	}
 }
 
+function healthRegeneration(attacker, percent) {
+	if (attacker.status.healblock > 0) return null;
+	let totalHealth = Math.floor(attacker.hp[0] + percent * attacker.hp[1] / 100);
+	if (totalHealth > attacker.hp[1]) {
+		attacker.hp[0] = attacker.hp[1];
+		return false;
+	} else {
+		attacker.hp[0] = totalHealth;
+		return true;
+	}
+}
+
 function moveParser(attacker, defender) {
 	let move = attacker.currentMove;
-	let miss = false;
 	prepareMessage(`${attacker.elements.nameEl.innerText} used ${move.name}.`);
 	move.pp[0] --; 
 
@@ -584,143 +694,234 @@ function moveParser(attacker, defender) {
 			break;
 	}
 
-	if (move.accuracy) {
-		miss = (Math.random()*100 > move.accuracy*accEvadeMultiplier(attacker.accuracy.state)/accEvadeMultiplier(defender.evasion.state));
-		if (miss) prepareMessage('It missed.');
-	}
 
-	if (move.damageClass === "status") {
-		if (move.target.match(/user/)) {
-			if (move.statchange.length > 0) {
-				move.statchange.forEach(s => {
-					statBoost(attacker, s);
-				})
-			} 
-		} else if (!miss) {
-			if (move.statchange.length > 0) {
-				move.statchange.forEach(s => {
-					statBoost(defender, s);
-				})
-			} 
-			ailmentParser(move, defender);
+	if (move.target.match(/user/)) {
+		if (move.statchange.length > 0) {
+			move.statchange.forEach(s => {
+				statBoost(attacker, s);
+			})
+		} 
+	} else {
+		let miss = false;
+
+		if (move.accuracy) {
+			miss = (Math.random()*100 > move.accuracy*accEvadeMultiplier(attacker.accuracy.state)/accEvadeMultiplier(defender.evasion.state));
+			if (miss) prepareMessage('It missed.');
 		}
-	} else if ((move.damageClass === "physical" || move.damageClass === "special")) {
-		
-		if (!miss) {
-			let burn = 1;
-			let attack;
-			let defense;
-			let random = (Math.random()*15+85)/100;
-			let critical = (Math.random() < attacker.critRate.value*(3**(move.meta.crit_rate+attacker.critRate.stage))) ? 1.5 : 1;
-			if (critical === 1.5) prepareMessage('Critical Hit!')
-			if (move.damageClass === "physical") {
-				if (attacker.status[0].state === "burn") burn = .5
-				if (critical === 1.5) {
-					attack = attacker.attack.value*stageMultipliers(Math.max(attacker.attack.state, 0));
-					defense = defender.defense.value*stageMultipliers(Math.min(defender.defense.state, 0));
-				} else {
-					attack = attacker.attack.value*stageMultipliers(attacker.attack.state);
-					defense = defender.defense.value*stageMultipliers(defender.defense.state);
+
+		switch (move.damageClass) {
+			case 'status':
+				if (!miss) {
+					if (move.statchange.length > 0) {
+						move.statchange.forEach(s => {
+							statBoost(defender, s);
+						})
+					} 
+					ailmentParser(attacker, move, defender);
 				}
-			} else if (move.damageClass === "special") {
-				if (critical === 1.5) {
-					attack = attacker.specialAttack.value*stageMultipliers(Math.max(attacker.specialAttack.state, 0));
-					defense = defender.specialDefense.value*stageMultipliers(Math.min(defender.specialDefense.state, 0));
-				} else {
-					attack = attacker.specialAttack.value*stageMultipliers(attacker.specialAttack.state);
-					defense = defender.specialDefense.value*stageMultipliers(defender.specialDefense.state);
+				break;
+			case 'physical':
+				if (!miss) {
+					damageParser(attacker, move, defender);
+					ailmentParser(attacker, move, defender);
 				}
-			}
-			let stab = (attacker.types.includes(move.type)) ? 1.2 : 1;
-			let type = (defender.types.reduce((total, type) => {
-				return total * ((typeof moveDamage[move.type][type] === "number") ? moveDamage[move.type][type] : 1);
-			},1))
-			if (type === 0) {
-				prepareMessage("It has no effect.");
-			} else if (type < 1) {
-				prepareMessage("It's not very effective.");
-			} else if (type > 1) {
-				prepareMessage("It's super effective!");
-			}
-
-			let weatherMult = ((weather.state === "rain" && move.type === "water") || (weather.state === "harsh sunlight" && move.type === "fire")) ? 1.5 : 1;
-
-			let damage = Math.floor(((((2*attacker.level)/5+2)*move.power*attack/defense)/50+2)*weatherMult*critical*random*stab*type*burn);
-
-			defender.hp[0] = (damage > defender.hp[0]) ? 0 : defender.hp[0]-damage;
-
-			ailmentParser(move, defender);
+				break;
+			case 'special':
+				if (!miss) {
+					damageParser(attacker, move, defender);
+					ailmentParser(attacker, move, defender);
+				}
+				break;
 		}
 	}
+	
 
-	if (move.meta.healing) {
-		let totalHealth = Math.round(attacker.hp[0] + move.meta.healing * attacker.hp[1] / 100);
-		if (move.meta.healing > 0) {
-			if (totalHealth > attacker.hp[1]) {
-				attacker.hp[0] = attacker.hp[1];
-				prepareMessage(`${attacker.elements.nameEl.innerText} healed to full.`)
-			} else {
-				attacker.hp[0] = totalHealth;
-				prepareMessage(`${attacker.elements.nameEl.innerText} healed some health.`)
-			}
-		} else {
-			if (totalHealth < 0) {
-				attacker.hp[0] = 0;
-			} else {
-				attacker.hp[0] = totalHealth;
-			}
-			prepareMessage(`${attacker.elements.nameEl.innerText} took some damage from recoil.`);
+	if (move.meta.healing > 0) {
+		let healing = healthRegeneration(attacker, move.meta.healing);
+		if (healing) {
+			prepareMessage(`${attacker.elements.nameEl.innerText} healed some health.`);
+		} else if (healing === false){
+			prepareMessage(`${attacker.elements.nameEl.innerText} healed to full.`);
 		}
+	} else if (move.meta.healing < 0) {
+		healthDegeneration(attacker, -move.meta.healing)
+		prepareMessage(`${attacker.elements.nameEl.innerText} took some damage from recoil.`);
 	}
-
 
 	function statBoost(pokemon, statChange) {
 		let statName = statChange.stat.name.replace(/-[a-z]/, match => match[1].toUpperCase());
 		let result = pokemon[statName].state + statChange.change;
+
 		if (result > 6) {
 			pokemon[statName].state = 6;
-			prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statName} can't go any higher.`);
+			prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statChange.stat.name.replace(/-/, ' ')} can't go any higher.`);
 		} else if (result < -6) {
 			pokemon[statName].state = -6;
-			prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statName} can't go any lower.`);
+			prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statChange.stat.name.replace(/-/, ' ')} can't go any lower.`);
 		} else {
 			pokemon[statName].state = result;
 			if (statChange.change === 1) {
-				prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statName} increased.`);
-			} else if (statChange > 1) {
-				prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statName} sharply increased.`);
+				prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statChange.stat.name.replace(/-/, ' ')} increased.`);
+			} else if (statChange.change > 1) {
+				prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statChange.stat.name.replace(/-/, ' ')} sharply increased.`);
 			} else if (statChange.change === -1) {
-				prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statName} decreased.`);
-			} else if (statChange < -1) {
-				prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statName} sharply decreased.`);
+				prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statChange.stat.name.replace(/-/, ' ')} decreased.`);
+			} else if (statChange.change < -1) {
+				prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statChange.stat.name.replace(/-/, ' ')} sharply decreased.`);
 			}
 		}
 	}
 
-	function ailmentParser(move, defender) {
-		if (move.meta.ailment.name !== "none" && Math.random()*100 < (move.meta.ailment_chance || 100)) {
-			if (mainStatuses.includes(move.meta.ailment.name && defender.status[0].state === "none")) {
+	function ailmentParser(attacker, move, defender) {
+		const name = move.meta.ailment.name.replace('-', '');
+		if (name !== "none" && Math.random()*100 < (move.meta.ailment_chance || 100)) {
+			if (mainStatuses.includes(name) && defender.status.main.state === "none") {
 
 				let immune = false; 
 
 				defender.types.forEach(type => {
-					if (statusImmunities[type] === move.meta.ailment.name) immune = true;
+					if (statusImmunities[type] === name) immune = true;
 				})
 
 				if (!immune) {
-					if (move.meta.ailment.name === 'sleep') {
+					if (name === 'sleep') {
 						prepareMessage(`${defender.elements.nameEl.innerText} has fallen asleep.`)
-						defender.status[0].duration = Math.floor(Math.random()*3)+2
-					} else if (move.meta.ailment.name === 'paralysis'){
+						defender.status.main.duration = Math.floor(Math.random()*3)+2
+					} else if (name === 'paralysis'){
 						prepareMessage(`${defender.elements.nameEl.innerText} was paralyzed.`);
 					} else {
-						prepareMessage(`${defender.elements.nameEl.innerText} was ${move.meta.ailment.name.replace(/e?$/, 'ed')}.`);
+						prepareMessage(`${defender.elements.nameEl.innerText} was ${name.replace(/e?$/, 'ed')}.`);
 					}
-					defender.status[0].state = move.meta.ailment.name;
+					defender.status.main.state = name;
 				}
 			} else {
+				if (name === 'unknown') {
 
+				} else if (name !== 'ingrain' && defender.status[name] === undefined) {
+					
+					switch (name) {
+						case 'confusion':
+							prepareMessage(`${defender.elements.nameEl.innerText} was confused.`);
+							defender.status[name] = Math.floor(Math.random()*3)+2;
+							break;
+						case 'infatuation':
+							prepareMessage(`${defender.elements.nameEl.innerText} was infatuated.`);
+							defender.status[name] = Infinity;
+							break;
+						case 'trap':
+							prepareMessage(`${defender.elements.nameEl.innerText} was trapped.`);
+							defender.status[name] = [2, 2, 2, 3, 3, 3, 4, 5][Math.floor(Math.random()*8)];
+							break;
+						case 'nightmare':
+							prepareMessage(`${defender.elements.nameEl.innerText} has a nightmare.`);
+							defender.status[name] = Infinity;
+							break;
+						case 'torment':
+							prepareMessage(`${defender.elements.nameEl.innerText} is unable to use the same move twice in a row.`);
+							defender.status[name] = Infinity;
+							break;
+						case 'disable':
+							prepareMessage(`${defender.elements.nameEl.innerText}'s ${defender.lastMove} was disabled.`);
+							defender.status[name] = Math.floor(Math.random()*3)+4;
+							defender.disabledMove = defender.previousMove;
+							break;
+						case 'yawn':
+							if (defender.status.main.state === 'none') {
+								prepareMessage(`${defender.elements.nameEl.innerText} is getting sleepy.`);
+								defender.status[name] = 1;
+							}
+							break;
+						case 'healblock':
+							prepareMessage(`${defender.elements.nameEl.innerText} can't heal.`);
+							defender.status[name] = 5;
+							break;
+						case 'notypeimmunity':
+							prepareMessage(`${defender.elements.nameEl.innerText} was sleuthed.`);
+							defender.status[name] = Infinity;
+							break;
+						case 'leechseed':
+							if (!defender.types.includes('grass')) {
+								prepareMessage(`${defender.elements.nameEl.innerText} was seeded.`);
+								defender.status[name] = Infinity;
+							}
+							break;
+						case 'embargo':
+							prepareMessage(`${defender.elements.nameEl.innerText} cannot use items.`);
+							defender.status[name] = 5;
+							break;
+						case 'perishsong':
+							defender.status[name] = 3;
+							attacker.status[name] = 4;
+							break;
+					}
+						
+				} else if (name === 'ingrain' && defender.status.ingrain === undefined) {
+					defender.status.ingrain = Infinity;
+				}
 			}
+		}
+		if (move.meta.flinch_chance > 0) {
+			if (Math.random()*100 < move.meta.flinch_chance) {
+				defender.status.flinch = 1;
+			}
+		}
+	}
+}
+
+function damageParser(attacker, move, defender) {
+	let burn = 1;
+	let attack;
+	let defense;
+	let random = (Math.random()*15+85)/100;
+	let critical = (Math.random() < attacker.critRate.value*(3**(move.meta.crit_rate+attacker.critRate.stage))) ? 1.5 : 1;
+	if (critical === 1.5) prepareMessage('Critical Hit!')
+	if (move.damageClass === "physical") {
+		if (attacker.status.main.state === "burn") burn = .5
+		if (critical === 1.5) {
+			attack = attacker.attack.value*stageMultipliers(Math.max(attacker.attack.state, 0));
+			defense = defender.defense.value*stageMultipliers(Math.min(defender.defense.state, 0));
+		} else {
+			attack = attacker.attack.value*stageMultipliers(attacker.attack.state);
+			defense = defender.defense.value*stageMultipliers(defender.defense.state);
+		}
+	} else if (move.damageClass === "special") {
+		if (critical === 1.5) {
+			attack = attacker.specialAttack.value*stageMultipliers(Math.max(attacker.specialAttack.state, 0));
+			defense = defender.specialDefense.value*stageMultipliers(Math.min(defender.specialDefense.state, 0));
+		} else {
+			attack = attacker.specialAttack.value*stageMultipliers(attacker.specialAttack.state);
+			defense = defender.specialDefense.value*stageMultipliers(defender.specialDefense.state);
+		}
+	}
+	let stab = (attacker.types.includes(move.type)) ? 1.2 : 1;
+	let type = (defender.types.reduce((total, type) => {
+		return total * ((typeof moveDamage[move.type][type] === "number") ? moveDamage[move.type][type] : 1);
+	},1))
+	if (type === 0) {
+		prepareMessage("It has no effect.");
+	} else if (type < 1) {
+		prepareMessage("It's not very effective.");
+	} else if (type > 1) {
+		prepareMessage("It's super effective!");
+	}
+
+	let weatherMult = ((weather.state === "rain" && move.type === "water") || (weather.state === "harsh sunlight" && move.type === "fire")) ? 1.5 : 1;
+
+	let damage = Math.floor(((((2*attacker.level)/5+2)*move.power*attack/defense)/50+2)*weatherMult*critical*random*stab*type*burn);
+
+	if (move.meta.max_hits > 1) {
+		let hits = Math.floor(Math.random()*(move.meta.max_hits-move.meta.min_hits)+move.meta.min_hits);
+		prepareMessage(`${move.name} hit ${hits} time(s).`);
+		damage *= hits;
+	}
+
+	defender.hp[0] = (damage > defender.hp[0]) ? 0 : defender.hp[0]-damage;
+
+	if (move.meta.drain > 0 && attacker.status.healblock === undefined) {
+		let drain = Math.round(damage*drain/100);
+		if (drain) {
+			attacker.hp[0] = (drain + attacker.hp[0] > attacker.hp[1]) ? attacker.hp[1] : drain + attacker.hp[0];
+			prepareMessage(`${attacker.elements.nameEl.innerText} drained some life.`);
 		}
 	}
 }
@@ -777,7 +978,6 @@ async function getPokemonInfo(object, id) {
 		object.trainer = pokemon.data.trainer;
 		object.images = pokemon.data.images;
 		object.nature = pokemon.data.nature;
-		object.flinch = false;
 		
 		let statTotal = 0;
 		stats.forEach(stat => {
@@ -800,10 +1000,10 @@ async function getPokemonInfo(object, id) {
 		object.hp = [hp, hp];
 		object.accuracy = {state: 0};
 		object.evasion = {state: 0};
-		object.status = [{
+		object.status = {main: {
 			state: "none",
 			duration: Infinity
-		}];
+		}};
 
 		object.moves = moves.data;
 		object.moves.forEach((move, index) => {
@@ -1117,8 +1317,8 @@ function renderBackButton() {
 
 function renderStatus() {
 	pokemonArray.forEach(pokemon => {
-		if (pokemon.status[0].state !== "none") {
-			pokemon.elements.statusEl.innerText = pokemon.status[0].state;
+		if (pokemon.status.main.state !== "none") {
+			pokemon.elements.statusEl.innerText = pokemon.status.main.state;
 		} else {
 			pokemon.elements.statusEl.innerText = '';
 		}
