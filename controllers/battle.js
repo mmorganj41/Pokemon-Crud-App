@@ -23,15 +23,19 @@ async function index(req, res, next){
 		const moveNames = moves.map(move => move.name);
 		pokemon.level = dataFunctions.pokemonLevel(pokemon.experience);
 
+		console.log(moveNames);
+
 		const moveOptions = pokemonQuery.data.moves.reduce((filtered, moveData) => {
 			const learnMethod = moveData.version_group_details[0].move_learn_method.name;
 			const levelLearned = moveData.version_group_details[0].level_learned_at;
 			const moveName = moveData.move.name;
 	
-			if (!(moveNames.includes(moveName)) && levelLearned <= pokemon.Level && (learnMethod === 'egg' || learnMethod === 'level-up')) {
+			if (!(moveNames.includes(moveName)) && levelLearned <= pokemon.level && (learnMethod === 'egg' || learnMethod === 'level-up')) {
 				filtered.push(moveData.move);
 			}
 			return filtered;
+
+			
 		}, [])
 
 		pokemon.moveOptions = moveOptions;

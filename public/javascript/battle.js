@@ -22,6 +22,16 @@ const battlePath = {
 	gameOver: ['win', 'lose', 'draw'],
 }
 
+const mainStatuses = ['none', 'paralysis', 'feeze', 'sleep', 'poison', 'burn'];
+
+const statusImmunities = {
+	electric: 'paralysis',
+	steel: 'poison',
+	poison: 'poison',
+	fire: 'burn',
+	ice: 'freeze',
+}
+
 const moveDamage = {
 	normal: {
 		rock: .5,
@@ -229,7 +239,7 @@ let move;
 
 // Dom elements
 
-const battleController = document.getElementById('battleactions')
+const battleController = document.getElementById('battleactions');
 const messageBoxEl = document.getElementById('messagebox');
 const infoPanelEl = document.getElementById('infopanel');
 
@@ -239,8 +249,9 @@ getPokemonElements(playerPokemon.elements, 'userpokemon');
 getPokemonElements(opponentPokemon.elements, 'opponentpokemon');
 
 function getPokemonElements(element, id) {
-	element.nameEl = document.querySelector(`#${id} .name`);
+	element.nameEl = document.querySelector(`#${id} .name h3`);
 	element.levelEl = document.querySelector(`#${id} span`);
+	element.statusEl = document.querySelector(`#${id} .state`);
 	element.hpEl =document.querySelector(`#${id} .hp`);
 	element.spriteEl = document.querySelector(`#${id} .battlesprite`);
 	element.barEl = document.querySelector(`#${id} .bar`);
@@ -428,6 +439,10 @@ function turnParser(playerMove) {
 	firstMove = true;
 	playerMove = playerPokemon.moves.find(move => move.name === playerMove) || struggle;
 	
+	pokemonArray.forEach(pokemon => {
+		pokemon.flinch = false;
+	})
+
 	if (!playerMove.pp[0]) {
 		message = "That move is out of PP, select another.";
 		gameState = "actions";
@@ -436,8 +451,8 @@ function turnParser(playerMove) {
 
 	let opponentMove = aiSelect();
 
-	let playerSpeed = playerPokemon.speed.value*stageMultipliers(playerPokemon.speed.state)*((playerPokemon.status.state === "paralysis") ? .5 : 1)
-	let opponentSpeed = opponentPokemon.speed.value*stageMultipliers(opponentPokemon.speed.state)*((playerPokemon.status.state === "paralysis") ? .5 : 1)
+	let playerSpeed = playerPokemon.speed.value*stageMultipliers(playerPokemon.speed.state)*((playerPokemon.status[0].state === "paralysis") ? .5 : 1)
+	let opponentSpeed = opponentPokemon.speed.value*stageMultipliers(opponentPokemon.speed.state)*((opponentPokemon.status[0].state === "paralysis") ? .5 : 1)
 	if (playerMove.priority === opponentMove.priority) {
 		if (playerSpeed === opponentSpeed) {
 			gameState = Math.round(Math.random()) ? "playerMove" : "opponentMove";
@@ -455,7 +470,9 @@ function turnParser(playerMove) {
 }
 
 function turnMove(attacker, defender) {
-	moveParser(attacker, defender);
+	if (preAct(attacker)) {
+		moveParser(attacker, defender);
+	}
 
 	if (attacker.hp[0] <= 0 || defender.hp[0] <= 0) {
 		gameState = battlePath[gameState][2]
@@ -472,10 +489,89 @@ function turnMove(attacker, defender) {
 	}
 }
 
+function preAct(attacker) {
+
+	if(attacker.flinch) {
+
+	}
+	
+	switch (attacker.status[0].state) {
+		// case "burn":
+		// 	prepareMessage(`${attacker.elements.nameEl.innerText} took damage from its burn.`);
+		// 	return (healthDegeneration(attacker, 12.5));
+		// case "poison":
+		// 	prepareMessage(`${attacker.elements.nameEl.innerText} took damage from poison.`);
+		// 	return (healthDegeneration(attacker, 12.5));
+		// case "confusion":
+		// 	prepareMessage(`${attacker.elements.nameEl.innerText} is confused.`);
+		// 	if (Math.random()*100 < 25) {
+		// 		healthDegeneration(attacker, 12.5);
+		// 		prepareMessage(`${attacker.elements.nameEl.innerText} hurt itself in the confusion.`);
+		// 		return false;
+		// 	} else {
+		// 		return true;
+		// 	}
+		case "freeze":
+			if (Math.random()*100 < 20) {
+				attacker.status[0].state = "none";
+				attacker.status[0].duration = Infinity;
+				prepareMessage(`${attacker.elements.nameEl.innerText} was unfrozen!`);
+				return true;
+			} else {
+				prepareMessage(`${attacker.elements.nameel.innerText} is frozen solid.`);
+				return false;
+			}
+		case "sleep":
+			if (attacker.status[0].duration <= 0) {
+				attacker.status[0].state = "none";
+				attacker.status[0].duration = Infinity;
+				prepareMessage(`${attacker.elements.nameEl.innerText} woke up!`);
+				return true;
+			} else {
+				prepareMessage(`${attacker.elements.nameel.innerText} is fast asleep.`);
+				return false;
+			}
+		case "paralysis":
+			console.log('running')
+			if (Math.random()*100 < 25)	{
+				prepareMessage(`${attacker.elements.nameEl.innerText} is paralyzed.`);
+				console.log('false');
+				return false;
+			} else {
+				console.log('true');
+				return true;
+			}
+		// case "infatuation":
+		// 	if (Math.random()*100 < 50)	{
+		// 		prepareMessage(`${attacker.elements.nameEl.innerText} is infatuated.`);
+		// 		return false;
+		// 	} else {
+		// 		return true;
+		// 	}
+		default:
+			return true;
+	}
+
+
+}
+
+function healthDegeneration(attacker, percent) {
+	let totalHealth = Math.round(attacker.hp[0] + percent * attacker.hp[1] / 100);
+	if (totalHealth < 0) {
+		attacker.hp[0] = 0;
+		return false;
+	} else {
+		attacker.hp[0] = totalHealth;
+		return true;
+	}
+}
+
 function moveParser(attacker, defender) {
 	let move = attacker.currentMove;
+	let miss = false;
 	prepareMessage(`${attacker.elements.nameEl.innerText} used ${move.name}.`);
-	
+	move.pp[0] --; 
+
 	switch (move.damageClass) {
 		case damageClasses[0]:
 			attacker.attacking = damageClasses[0];
@@ -488,50 +584,147 @@ function moveParser(attacker, defender) {
 			break;
 	}
 
-	if (move.damageClass === "physical" || move.damageClass === "special") {
-		let burn = 1;
-		let attack;
-		let defense;
-		let random = (Math.random()*15+85)/100;
-		let critical = (Math.random() < attacker.critRate.value*(3**(move.meta.crit_rate+attacker.critRate.stage))) ? 1.5 : 1;
-		if (critical === 1.5) prepareMessage('Critical Hit!')
-		if (move.damageClass === "physical") {
-			if (attacker.status.state === "burn") burn = .5
-			if (critical === 1.5) {
-				attack = attacker.attack.value*stageMultipliers(Math.max(attacker.attack.state, 0));
-				defense = defender.defense.value*stageMultipliers(Math.min(defender.defense.state, 0));
-			} else {
-				attack = attacker.attack.value*stageMultipliers(attacker.attack.state);
-				defense = defender.defense.value*stageMultipliers(defender.defense.state);
+	if (move.accuracy) {
+		miss = (Math.random()*100 > move.accuracy*accEvadeMultiplier(attacker.accuracy.state)/accEvadeMultiplier(defender.evasion.state));
+		if (miss) prepareMessage('It missed.');
+	}
+
+	if (move.damageClass === "status") {
+		if (move.target.match(/user/)) {
+			if (move.statchange.length > 0) {
+				move.statchange.forEach(s => {
+					statBoost(attacker, s);
+				})
+			} 
+		} else if (!miss) {
+			if (move.statchange.length > 0) {
+				move.statchange.forEach(s => {
+					statBoost(defender, s);
+				})
+			} 
+			ailmentParser(move, defender);
+		}
+	} else if ((move.damageClass === "physical" || move.damageClass === "special")) {
+		
+		if (!miss) {
+			let burn = 1;
+			let attack;
+			let defense;
+			let random = (Math.random()*15+85)/100;
+			let critical = (Math.random() < attacker.critRate.value*(3**(move.meta.crit_rate+attacker.critRate.stage))) ? 1.5 : 1;
+			if (critical === 1.5) prepareMessage('Critical Hit!')
+			if (move.damageClass === "physical") {
+				if (attacker.status[0].state === "burn") burn = .5
+				if (critical === 1.5) {
+					attack = attacker.attack.value*stageMultipliers(Math.max(attacker.attack.state, 0));
+					defense = defender.defense.value*stageMultipliers(Math.min(defender.defense.state, 0));
+				} else {
+					attack = attacker.attack.value*stageMultipliers(attacker.attack.state);
+					defense = defender.defense.value*stageMultipliers(defender.defense.state);
+				}
+			} else if (move.damageClass === "special") {
+				if (critical === 1.5) {
+					attack = attacker.specialAttack.value*stageMultipliers(Math.max(attacker.specialAttack.state, 0));
+					defense = defender.specialDefense.value*stageMultipliers(Math.min(defender.specialDefense.state, 0));
+				} else {
+					attack = attacker.specialAttack.value*stageMultipliers(attacker.specialAttack.state);
+					defense = defender.specialDefense.value*stageMultipliers(defender.specialDefense.state);
+				}
 			}
-		} else if (move.damageClass === "special") {
-			if (critical === 1.5) {
-				attack = attacker.specialAttack.value*stageMultipliers(Math.max(attacker.specialAttack.state, 0));
-				defense = defender.specialDefense.value*stageMultipliers(Math.min(defender.specialDefense.state, 0));
+			let stab = (attacker.types.includes(move.type)) ? 1.2 : 1;
+			let type = (defender.types.reduce((total, type) => {
+				return total * ((typeof moveDamage[move.type][type] === "number") ? moveDamage[move.type][type] : 1);
+			},1))
+			if (type === 0) {
+				prepareMessage("It has no effect.");
+			} else if (type < 1) {
+				prepareMessage("It's not very effective.");
+			} else if (type > 1) {
+				prepareMessage("It's super effective!");
+			}
+
+			let weatherMult = ((weather.state === "rain" && move.type === "water") || (weather.state === "harsh sunlight" && move.type === "fire")) ? 1.5 : 1;
+
+			let damage = Math.floor(((((2*attacker.level)/5+2)*move.power*attack/defense)/50+2)*weatherMult*critical*random*stab*type*burn);
+
+			defender.hp[0] = (damage > defender.hp[0]) ? 0 : defender.hp[0]-damage;
+
+			ailmentParser(move, defender);
+		}
+	}
+
+	if (move.meta.healing) {
+		let totalHealth = Math.round(attacker.hp[0] + move.meta.healing * attacker.hp[1] / 100);
+		if (move.meta.healing > 0) {
+			if (totalHealth > attacker.hp[1]) {
+				attacker.hp[0] = attacker.hp[1];
+				prepareMessage(`${attacker.elements.nameEl.innerText} healed to full.`)
 			} else {
-				attack = attacker.specialAttack.value*stageMultipliers(attacker.specialAttack.state);
-				defense = defender.specialDefense.value*stageMultipliers(defender.specialDefense.state);
+				attacker.hp[0] = totalHealth;
+				prepareMessage(`${attacker.elements.nameEl.innerText} healed some health.`)
+			}
+		} else {
+			if (totalHealth < 0) {
+				attacker.hp[0] = 0;
+			} else {
+				attacker.hp[0] = totalHealth;
+			}
+			prepareMessage(`${attacker.elements.nameEl.innerText} took some damage from recoil.`);
+		}
+	}
+
+
+	function statBoost(pokemon, statChange) {
+		let statName = statChange.stat.name.replace(/-[a-z]/, match => match[1].toUpperCase());
+		let result = pokemon[statName].state + statChange.change;
+		if (result > 6) {
+			pokemon[statName].state = 6;
+			prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statName} can't go any higher.`);
+		} else if (result < -6) {
+			pokemon[statName].state = -6;
+			prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statName} can't go any lower.`);
+		} else {
+			pokemon[statName].state = result;
+			if (statChange.change === 1) {
+				prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statName} increased.`);
+			} else if (statChange > 1) {
+				prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statName} sharply increased.`);
+			} else if (statChange.change === -1) {
+				prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statName} decreased.`);
+			} else if (statChange < -1) {
+				prepareMessage(`${pokemon.elements.nameEl.innerText}'s ${statName} sharply decreased.`);
 			}
 		}
-		let stab = (attacker.types.includes(move.type)) ? 1.2 : 1;
-		let type = (defender.types.reduce((total, type) => {
-			return total * ((typeof moveDamage[move.type][type] === "number") ? moveDamage[move.type][type] : 1);
-		},1))
-		if (type === 0) {
-			prepareMessage("It has no effect.");
-		} else if (type < 1) {
-			prepareMessage("It's not very effective.");
-		} else if (type > 1) {
-			prepareMessage("It's super effective!");
+	}
+
+	function ailmentParser(move, defender) {
+		if (move.meta.ailment.name !== "none" && Math.random()*100 < (move.meta.ailment_chance || 100)) {
+			if (mainStatuses.includes(move.meta.ailment.name && defender.status[0].state === "none")) {
+
+				let immune = false; 
+
+				defender.types.forEach(type => {
+					if (statusImmunities[type] === move.meta.ailment.name) immune = true;
+				})
+
+				if (!immune) {
+					if (move.meta.ailment.name === 'sleep') {
+						prepareMessage(`${defender.elements.nameEl.innerText} has fallen asleep.`)
+						defender.status[0].duration = Math.floor(Math.random()*3)+2
+					} else if (move.meta.ailment.name === 'paralysis'){
+						prepareMessage(`${defender.elements.nameEl.innerText} was paralyzed.`);
+					} else {
+						prepareMessage(`${defender.elements.nameEl.innerText} was ${move.meta.ailment.name.replace(/e?$/, 'ed')}.`);
+					}
+					defender.status[0].state = move.meta.ailment.name;
+				}
+			} else {
+
+			}
 		}
-
-		let weatherMult = ((weather.state === "rain" && move.type === "water") || (weather.state === "harsh sunlight" && move.type === "fire")) ? 1.5 : 1;
-
-		let damage = Math.floor(((((2*attacker.level)/5+2)*move.power*attack/defense)/50+2)*weatherMult*critical*random*stab*type*burn);
-
-		defender.hp[0] = (damage > defender.hp[0]) ? 0 : defender.hp[0]-damage;
 	}
 }
+
 
 function endGame() {
 	if (playerPokemon.hp[0] <= 0 && opponentPokemon.hp[0] <= 0) {
@@ -584,6 +777,7 @@ async function getPokemonInfo(object, id) {
 		object.trainer = pokemon.data.trainer;
 		object.images = pokemon.data.images;
 		object.nature = pokemon.data.nature;
+		object.flinch = false;
 		
 		let statTotal = 0;
 		stats.forEach(stat => {
@@ -604,12 +798,12 @@ async function getPokemonInfo(object, id) {
 			stage: 0,
 		};
 		object.hp = [hp, hp];
-		object.accuracy = 0;
-		object.evasion = 0;
-		object.status = {
-			state: "normal",
+		object.accuracy = {state: 0};
+		object.evasion = {state: 0};
+		object.status = [{
+			state: "none",
 			duration: Infinity
-		};
+		}];
 
 		object.moves = moves.data;
 		object.moves.forEach((move, index) => {
@@ -629,7 +823,7 @@ async function getPokemonInfo(object, id) {
 	}
 
 	function calculateHealth(health, level) {
-		return Math.round((health*(level+1))/100 + level + 10);
+		return Math.round(((health*(level+1))/100 + level + 10)*2);
 	}
 
 	function calculateStat(amount, level) {
@@ -680,6 +874,8 @@ function render() {
 	renderAttacking();
 
 	renderFainted();
+
+	renderStatus();
 
 	renderLevelUp();
 
@@ -917,4 +1113,14 @@ function renderBackButton() {
 	backEl.innerText = "⇚ Back";
 	backEl.id = 'back';
 	messageBoxEl.append(backEl);
+}
+
+function renderStatus() {
+	pokemonArray.forEach(pokemon => {
+		if (pokemon.status[0].state !== "none") {
+			pokemon.elements.statusEl.innerText = pokemon.status[0].state;
+		} else {
+			pokemon.elements.statusEl.innerText = '';
+		}
+	});
 }

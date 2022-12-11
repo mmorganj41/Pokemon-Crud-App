@@ -1,8 +1,8 @@
 <div id="pokemonshow">
-	<div id="sprite">
+	<div id="sprite"><h3><%= pokemon.name[0].toUpperCase() + pokemon.name.substring(1, pokemon.name.length) %></h3>
 		<div><img src="<%= pokemon.images[0] %>" alt="<%= pokemon.images[0] %>"></div>
 	</div>
-	<div><h3><%= pokemon.name[0].toUpperCase() + pokemon.name.substring(1, pokemon.name.length) %></h3>
+	<div><h3>Info:</h3>
 		<div>
 			<div><div>Nickname:&nbsp;</div><div><%= pokemon.nickname %></div></div>
 			<div><div>Level:&nbsp;</div><div><%= pokemon.level %> (<%= pokemon.experience %>)</div></div>
