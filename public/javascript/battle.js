@@ -478,14 +478,22 @@ function turnParser(playerMove) {
 		gameState = "actions";
 		return;
 	} else if (playerPokemon.status.disable && playerPokemon.disabledMove === playerMove) {
-		prepareMessage("That move is disabled, select another.");
-		gameState = "actions";
+		if (playerPokemon.status.charging === 1) {
+			playerMove = struggle;
+		} else {
+			prepareMessage("That move is disabled, select another.");
+			gameState = "actions";
+		}
 		return;
 	} else if (playerPokemon.status.torment && playerPokemon.previousMove == playerMove) {
-		prepareMessage("Cannot use the same move in a row due to torment, select another.");
-		gameState = "actions";
+		if (playerPokemon.status.charging === 1) {
+			playerMove = struggle;
+		} else {
+			prepareMessage("Cannot use the same move in a row due to torment, select another.");
+			gameState = "actions";
+		}
 		return;
-	}
+	} 
 
 	let opponentMove = aiSelect();
 
@@ -549,6 +557,17 @@ function preAct(attacker, defender) {
 			};
 		}	
 	}
+
+	if (defender.status.notypeimmunity > 0) {
+		defender.evasion.state = Math.max(0, defender.evasion.state);
+	}
+	if (attacker.status.recharge) {
+		prepareMessage(`${attacker.elements.nameEl.innerText} is recharging.`);
+		return false
+	} else if (attacker.status.flinch > 0) {
+		prepareMessage(`${attacker.elements.nameEl.innerText} flinched!`);
+		return false;
+	} 
 	
 
 
@@ -590,10 +609,6 @@ function preAct(attacker, defender) {
 		}
 	}
 
-	if (defender.status.notypeimmunity > 0) {
-		defender.evasion.state = Math.max(0, defender.evasion.state);
-	}
-
 	return canAct;
 }
 
@@ -603,7 +618,7 @@ function postAct(attacker, defender) {
 	if (attacker.status.ingrain > 0) {
 		let healing = healthRegeneration(attacker, 8.25);
 		if (healing !== null) {
-			prepareMessage(`${attacker.eleements.nameEl.innerText} healed some health.`)
+			prepareMessage(`${attacker.elements.nameEl.innerText} healed some health.`)
 		}
 	}
 
@@ -679,23 +694,38 @@ function healthRegeneration(attacker, percent) {
 
 function moveParser(attacker, defender) {
 	let move = attacker.currentMove;
-	prepareMessage(`${attacker.elements.nameEl.innerText} used ${move.name}.`);
 	move.pp[0] --; 
 
-	switch (move.damageClass) {
-		case damageClasses[0]:
-			attacker.attacking = damageClasses[0];
-			break;
-		case damageClasses[1]:
-			attacker.attacking = damageClasses[1];
-			break;
-		case damageClasses[2]:
-			attacker.attacking = damageClasses[2];
-			break;
+
+	if (/user charges/i.test(move.info) && !attacker.status.charging) {
+		attacker.status.charging = 2;
+		prepareMessage(`${attacker.elements.nameEl.innerText} is charging its attack.`);
+		return;
+	} else {
+		switch (move.damageClass) {
+			case damageClasses[0]:
+				attacker.attacking = damageClasses[0];
+				break;
+			case damageClasses[1]:
+				attacker.attacking = damageClasses[1];
+				break;
+			case damageClasses[2]:
+				attacker.attacking = damageClasses[2];
+				break;
+		}
 	}
 
+	prepareMessage(`${attacker.elements.nameEl.innerText} used ${move.name}.`);	
 
-	if (move.target.match(/user/)) {
+	if (/recharge/i.test(move.info)) {
+		attacker.status.recharge = 2;
+	} 
+
+	if (/user charges/i.test(move.info)) {
+		move.pp[0] ++;
+	}
+
+	if (/user/i.test(move.target)) {
 		if (move.statchange.length > 0) {
 			move.statchange.forEach(s => {
 				statBoost(attacker, s);
@@ -734,7 +764,6 @@ function moveParser(attacker, defender) {
 				break;
 		}
 	}
-	
 
 	if (move.meta.healing > 0) {
 		let healing = healthRegeneration(attacker, move.meta.healing);
@@ -747,6 +776,20 @@ function moveParser(attacker, defender) {
 		healthDegeneration(attacker, -move.meta.healing)
 		prepareMessage(`${attacker.elements.nameEl.innerText} took some damage from recoil.`);
 	}
+
+	if (move.statchange.length > 0) {
+		if (Math.random()*100 < move.effectChance) {
+			if (/the user's/i.test(move.info)) {
+				move.statchange.forEach(s => {
+					statBoost(attacker, s);
+				})
+			} else {
+				move.statchange.forEach(s => {
+					statBoost(defender, s);
+				})
+			}
+		}
+	} 
 
 	function statBoost(pokemon, statChange) {
 		let statName = statChange.stat.name.replace(/-[a-z]/, match => match[1].toUpperCase());
@@ -954,8 +997,10 @@ function aiSelect(){
 	if (ppTotal === 0 || opponentPokemon.moves.length === 0) {
 		return struggle;
 	} else {
-		const availableMoves = opponentPokemon.moves.filter(move => move.pp[0] > 0);
-		return availableMoves[Math.floor(Math.random()*availableMoves.length)];
+		const availableMoves = opponentPokemon.moves.filter(move => {
+			return (move.pp[0] > 0) && !(opponentPokemon.status.disable && opponentPokemon.disabledMove === move) && !(opponentPokemon.status.charging === 1 && opponentPokemon.previousMove !== move) && !(opponentPokemon.status.torment && opponentPokemon.previousMove == move)
+		});
+		return availableMoves[Math.floor(Math.random()*availableMoves.length)] || struggle;
 	}
 }
 
@@ -1287,22 +1332,24 @@ function renderMoves() {
 		messageBoxEl.append(moveEl);
 	} else {
 		playerPokemon.moves.forEach(move => {
-			let moveEl = document.createElement("div");
-			let nameEl = document.createElement("div");
-			let ppEl = document.createElement("div");
+			if (!(playerPokemon.status.charging > 0) || playerPokemon.previousMove === move) {
+				let moveEl = document.createElement("div");
+				let nameEl = document.createElement("div");
+				let ppEl = document.createElement("div");
 
-			[moveEl, nameEl, ppEl].forEach(e => {
-				e.classList.add(move.name)
-				e.classList.add("move")				
-			});
+				[moveEl, nameEl, ppEl].forEach(e => {
+					e.classList.add(move.name)
+					e.classList.add("move")				
+				});
 
-			if (move.pp[0] < 1) moveEl.style.color = "red";
-			nameEl.innerText = move.name;
-			ppEl.innerText = `${move.pp[0]}/${move.pp[1]}`
+				if (move.pp[0] < 1) moveEl.style.color = "red";
+				nameEl.innerText = move.name;
+				ppEl.innerText = `${move.pp[0]}/${move.pp[1]}`
 
-			moveEl.append(nameEl);
-			moveEl.append(ppEl);
-			messageBoxEl.append(moveEl);
+				moveEl.append(nameEl);
+				moveEl.append(ppEl);
+				messageBoxEl.append(moveEl);
+			}
 		})
 	}
 	renderBackButton();

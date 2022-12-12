@@ -1,6 +1,20 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const statSchema = new Schema(
+	{
+		base: {
+			type: Number,
+			min: 0,
+			required: true,
+		},
+		variation: [{
+			type: Number,
+			required: true,
+		}],
+	}
+)
+
 const pokemonSchema = new Schema(
 	{
 		name: {
@@ -22,33 +36,28 @@ const pokemonSchema = new Schema(
 			type: String,
 		}],
 		hp: {
-			type: Number,
-			min: 0,
+			type: statSchema,
 			required: true,
 		},
 		attack: {
-			type: Number,
-			min: 0,
+			type: statSchema,
 			required: true,
 		},
 		defense: {
-			type: Number,
+			type: statSchema,
 			min: 0,
 			required: true,
 		},
 		speed: {
-			type: Number,
-			min: 0,
+			type: statSchema,
 			required: true,
 		},
 		specialAttack: {
-			type: Number,
-			min: 0,
+			type: statSchema,
 			required: true,
 		},
 		specialDefense: {
-			type: Number,
-			min: 0,
+			type: statSchema,
 			required: true,
 		},
 		nature: {

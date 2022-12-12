@@ -85,6 +85,8 @@ async function show(req, res, next) {
 
 		pokemon.moveOptions = moveOptions;
 
+		console.log(pokemon);
+
 
 		
 		res.render('pokemon/show', {title: 'Pokemon', pokemon});
@@ -114,7 +116,13 @@ async function create(req, res, next) {
 			trainer: req.user.name,
 		};
 
-		stats.forEach(stat => pokemon[stat] = statGen(pokemonQuery.data, stat, pokemon.nature));
+		stats.forEach(stat => {
+			let statArray = {
+				base: pokemonQuery.data.stats.find(e => e.stat.name === stat.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)).base_stat,
+				variation: statGen(stat, pokemon.nature),
+			};
+			pokemon[stat] = statArray;
+		});
 
 		Pokemon.create(pokemon);
 
@@ -125,11 +133,10 @@ async function create(req, res, next) {
 		res.send('ERROR check terminal');
 	}
 
-	function statGen(query, name, nature){
+	function statGen(name, nature){
 		const direction = (Math.round(Math.random())) ? 1 : -1;
 		const boost = 1 + (natureBoost[name].includes(nature) ? .1 : 0) - (natureDrop[name].includes(nature) ? .1 : 0);
-		const stat = query.stats.find(e => e.stat.name === name.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)).base_stat;
-		return Math.round((stat + Math.random()*31 + direction * Math.random()*.2*stat)*boost);	
+		return [Math.round(Math.random()*31*boost*100)/100, Math.round((direction * Math.random()*2000)*boost)/100];	
 	}
 	
 	function natureGen(){

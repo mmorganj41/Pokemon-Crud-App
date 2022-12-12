@@ -15,12 +15,10 @@
 	</div>
 	<div><h3>Stats:</h3>
 		<div>
-			<div><div>HP:&nbsp;</div><div><%= pokemon.hp %></div></div>
-			<div><div>ATK:&nbsp;</div><div><%= pokemon.attack %></div></div>
-			<div><div>DEF:&nbsp;</div><div><%= pokemon.defense %></div></div>
-			<div><div>SPD:&nbsp;</div><div><%= pokemon.speed %></div></div>
-			<div><div>SATK:&nbsp;</div><div><%= pokemon.specialAttack %></div></div>
-			<div><div>SDEF:&nbsp;</div><div><%= pokemon.specialDefense %></div></div>
+			<% const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense']%>
+			<% stats.forEach(stat => { %>
+				<div><div><%= stat.replace(/pecial|ee|tac|ense/ig, '').toUpperCase() %>:&nbsp;</div><div><%= Math.round((100+pokemon[stat].variation[1])/100*(pokemon[stat].base + pokemon[stat].variation[0])) %></div></div>
+			<% }) %>
 		</div>
 	</div>
 	<div><h3>Moves:</h3>
