@@ -524,6 +524,11 @@ a:visited {
 	animation: backandforth 1s linear 1;
 }
 
+#evolve {
+	display: flex;
+	justify-content: center;
+}
+
 @keyframes battleidle {
     0% {
 		transform: translateX(-.2em) rotate(-3deg);

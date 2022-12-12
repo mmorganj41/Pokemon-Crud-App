@@ -5,6 +5,7 @@ const axios = require('axios');
 const pokeAPIURL = "https://pokeapi.co/api/v2/";
 
 const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
+
 const natureBoost = {
 	attack: ['lonely', 'brave', 'adamant', 'naughty'],
 	defense: ['bold', 'relaxed', 'impish', 'lax'],
@@ -105,16 +106,31 @@ async function create(req, res, next) {
 	  		headers: {'accept-encoding': 'json'},
 		});
 
+		const pokemonSpeciesQuery = await axios({
+			method: 'get',
+			url: req.body.url.replace(/pokemon/, 'pokemon-species'),
+	  		headers: {'accept-encoding': 'json'},
+		});
+
+		const evolutionChain = await axios({
+			method: 'get',
+			url: pokemonSpeciesQuery.data.evolution_chain.url,
+	  		headers: {'accept-encoding': 'json'},
+		})
+
 		const pokemon = {
 			name: pokemonQuery.data.name,	
 			nickname: req.body.nickname,
 			types: pokemonQuery.data.types.map(type => type.type.name),
 			experience: 0,
-			images: imageGen(pokemonQuery.data),
+			shiny: shinyGen(),
 			nature: natureGen(),
 			user: req.user._id,
 			trainer: req.user.name,
+			evolution: [],
 		};
+
+		pokemon.images = imageGen(pokemon.shiny, pokemonQuery.data);
 
 		stats.forEach(stat => {
 			let statArray = {
@@ -124,9 +140,18 @@ async function create(req, res, next) {
 			pokemon[stat] = statArray;
 		});
 
-		Pokemon.create(pokemon);
+		let evolutionData = evolutionFinder(evolutionChain.data.chain, pokemonQuery.data.name);
 
-		res.redirect('/pokemon')
+		evolutionData.forEach(evolution => {
+			pokemon.evolution.push({
+				species: evolution.species,
+				data: evolution.evolution_details[0],
+			})
+		})
+
+		const createdPokemon = await Pokemon.create(pokemon);
+
+		res.redirect(`/pokemon/${createdPokemon._id}`)
 
 	} catch(err) {
 		console.log(err);
@@ -144,13 +169,34 @@ async function create(req, res, next) {
 		return natures[Math.floor(Math.random()*natures.length)];
 	}
 	
-	function imageGen(query){
-		const randomNumber = Math.floor(Math.random()*1000);
-		if (randomNumber === 0) {
-			return [query.sprites.front_shiny, query.sprites.back_shiny];
-		} else {
-			return [query.sprites.front_default, query.sprites.back_default];
-		}
+	function shinyGen() {
+		return Math.floor(Math.random()*1000) === 0;
+	}
+
+}
+
+function evolutionFinder(chain, name) {
+	if (chain.species.name === name) {
+		return (chain.evolves_to);
+	} else if (chain.evolves_to.length === 0) {
+		return null;
+	} else {
+		for (const path of chain.evolves_to) {
+			let result = evolutionFinder(path, name);
+			console.log(result, '<-- result')
+			if (result !== null) {
+				return result;
+			}
+		};
+	} 
+	return null;
+}
+
+function imageGen(bool, query){
+	if (bool) {
+		return [query.sprites.front_shiny, query.sprites.back_shiny];
+	} else {
+		return [query.sprites.front_default, query.sprites.back_default];
 	}
 }
 
@@ -158,7 +204,6 @@ async function deletePokemon(req, res, next) {
 	try {
 		const pokemon = await Pokemon.findById(req.params.id); 
 
-		console.log(req.user?._id == String(pokemon.user), pokemon.user, req.user?._id);
 		if (req.user?._id != String(pokemon.user)) return res.redirect(`/pokemon`);
 
 		await Move.remove({pokemon:req.params.id});
@@ -175,8 +220,6 @@ async function deletePokemon(req, res, next) {
 
 async function update(req,res,next){
 	try {
-		console.log(req.body);
-
 		const pokemon = await Pokemon.findById(req.params.id);
 		
 		req.body.moves.forEach(async moveObj => {
@@ -198,6 +241,66 @@ async function update(req,res,next){
 	}
 }
 
+async function evolve(req, res, next) {
+	try {
+		const pokemon = await Pokemon.findById(req.params.id);
+
+		if (req.user?._id != String(pokemon.user)) return res.redirect(`/pokemon`);
+
+		const level = dataFunctions.pokemonLevel(pokemon.experience);
+		const evolutionName = pokemon.evolution.find(e => e.data.min_level < level).species.name;
+
+		if (evolutionName) {
+			const evolution = await axios(
+				{
+					method: 'get',
+					url: `${pokeAPIURL}/pokemon/${evolutionName}`,
+					headers: {'accept-encoding': 'json'},
+			});
+	
+			const pokemonSpeciesQuery = await axios({
+				method: 'get',
+				url: `${pokeAPIURL}/pokemon-species/${evolutionName}`,
+				  headers: {'accept-encoding': 'json'},
+			});
+	
+			const evolutionChain = await axios({
+				method: 'get',
+				url: pokemonSpeciesQuery.data.evolution_chain.url,
+				  headers: {'accept-encoding': 'json'},
+			})
+	
+			pokemon.name = evolution.data.name;
+			stats.forEach(stat => {
+				pokemon[stat].base = evolution.data.stats.find(e => e.stat.name === stat.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)).base_stat;
+			});
+			pokemon.images = imageGen(pokemon.shiny, evolution.data);
+			pokemon.types = evolution.data.types.map(type => type.type.name);
+			pokemon.evolution = [];
+
+			let evolutionData = evolutionFinder(evolutionChain.data.chain, evolutionName);
+			evolutionData.forEach(evolution => {
+				pokemon.evolution.push({
+					species: evolution.species,
+					data: evolution.evolution_details[0],
+				})
+			})
+
+			await pokemon.save();
+
+			res.redirect(`/pokemon/${req.params.id}`);
+		} else {
+			res.redirect(`/pokemon/${req.params.id}`);
+		}
+
+	} catch(err) {
+		console.log(err);
+		res.send('Error evolving pokemon');
+	}
+	
+
+}
+
 module.exports = {
 	index,
 	new: newPokemon,
@@ -205,4 +308,5 @@ module.exports = {
 	create,
 	delete: deletePokemon,
 	update,
+	evolve,
 }

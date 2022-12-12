@@ -515,6 +515,10 @@ function turnParser(playerMove) {
 
 }
 
+function turnStart() {
+	
+}
+
 function turnMove(attacker, defender) {
 	if (preAct(attacker, defender)) {
 		moveParser(attacker, defender);

@@ -32,6 +32,10 @@ const pokemonSchema = new Schema(
 			default: 0,
 			required: true,
 		},
+		shiny: {
+			type: Boolean,
+			required: true,
+		},
 		images: [{
 			type: String,
 		}],
@@ -65,6 +69,7 @@ const pokemonSchema = new Schema(
 			required: true,
 			enum: ["hardy", "bold", "modest", "calm", "timid", "lonely", "docile", "mild", "gentle", "hasty", "adamant", "impish", "bashful", "careful", "rash", "jolly", "naughty", "lax", "quirky", "naive"]
 		},
+		evolution: [{type: Object}],
 		user: {type: Schema.Types.ObjectId, ref: 'User'},
 		trainer: String,
 	}, 
