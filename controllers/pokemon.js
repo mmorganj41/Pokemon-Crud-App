@@ -4,8 +4,38 @@ const dataFunctions = require('../config/datafunctions');
 const axios = require('axios');
 const User = require('../models/user');
 const pokeAPIURL = "https://pokeapi.co/api/v2/";
+const availablePokemon = [];
 
 const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
+
+findAvailablePokemon();
+
+async function findAvailablePokemon() {
+	try {
+		const pokemon = await axios({
+			method: 'get',
+			url: `${pokeAPIURL}pokemon-species/?limit=251`,
+			headers: {'accept-encoding': 'json'},
+		});
+	
+		pokemon.data.results.forEach(async p => {
+			const pQuery = await axios({
+				method: 'get',
+				url: `${pokeAPIURL}pokemon-species/${p.name}`,
+				headers: {'accept-encoding': 'json'},
+			})
+	
+			if (!pQuery.data.evolves_from_species?.name && pQuery.data.egg_groups[0]?.name !== 'no-eggs') {
+				let number = p.url.match(/(?<=species\/)\d*/)[0];
+				availablePokemon[number] = p;
+			}
+		})
+
+		console.log(availablePokemon);
+	} catch(err) {
+		console.log(err);
+	}
+}
 
 async function index(req, res, next) {
 	try {
@@ -22,20 +52,8 @@ async function index(req, res, next) {
 	}
 }
 
-async function newPokemon(req, res, next) {
-	try {
-		const pokemon = await axios({
-			method: 'get',
-			url: `${pokeAPIURL}pokemon/?limit=151`,
-	  		headers: {'accept-encoding': 'json'},
-		});
-
-		res.render('pokemon/new', {title: 'Catch a Pokemon', pokemon: pokemon.data.results});
-	} catch(err) {
-		console.log(err);
-		res.redirect('/pokemon')
-	}
-	
+function newPokemon(req, res, next) {
+	res.render('pokemon/new', {title: 'Catch a Pokemon', pokemon: availablePokemon});
 }
 
 async function show(req, res, next) {

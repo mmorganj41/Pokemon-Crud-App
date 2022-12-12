@@ -5,7 +5,7 @@
 		<label>Name</label>
 		<select name="url">
 			<% pokemon.forEach(p => { %>
-				<option value="<%= p.url %> "><%= p.name %> </option>
+				<option value="<%= `https://pokeapi.co/api/v2/pokemon/${p.name}` %> "><%= p.name %> </option>
 			<% }) %>
 		</select>
 		<label>Nickname</label>
