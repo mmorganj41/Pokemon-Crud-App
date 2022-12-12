@@ -301,6 +301,7 @@ battleController.addEventListener('click', messageProgression);
 async function messageProgression(event){ 
 	pokemonArray.forEach(p => {
 		p.attacking = false;
+		p.defending = false;
 	})
 
 	if (messageArray.length > 0) {
@@ -967,6 +968,8 @@ function damageParser(attacker, move, defender) {
 			prepareMessage(`${attacker.elements.nameEl.innerText} drained some life.`);
 		}
 	}
+
+	defender.defending = true;
 }
 
 
@@ -1068,11 +1071,11 @@ async function getPokemonInfo(object, id) {
 	}
 
 	function calculateHealth(health, level) {
-		return Math.round(((health*(level+1))/100 + level + 10)*2);
+		return Math.round(((Math.round((100+health.variation[1])/100*(health.base + health.variation[0])))/100 + level + 10)*2);
 	}
 
-	function calculateStat(amount, level) {
-		return Math.round((amount*(level+1))/100 + 5);
+	function calculateStat(stat, level) {
+		return Math.round(((Math.round((100+stat.variation[1])/100*(stat.base + stat.variation[0])))*(level+1))/100 + 5);
 	}
 }
 
@@ -1099,10 +1102,12 @@ async function init() {
 	};
 	playerPokemon.priorHealthValues = playerPokemon.hp[0];
 	opponentPokemon.priorHealthValues = opponentPokemon.hp[0];
-	playerPokemon.attacking = false;
-	opponentPokemon.attacking = false;
-	playerPokemon.fainted = false;
-	opponentPokemon.fainted = false;
+
+	[pokemonArray].forEach(p => {
+		p.attacking = false;
+		p.defending = false;
+		p.fainted = false;
+	})
 
 	render();
 }
@@ -1117,6 +1122,8 @@ function render() {
 	}
 
 	renderAttacking();
+
+	renderDefending();
 
 	renderFainted();
 
@@ -1179,6 +1186,17 @@ function renderAttacking() {
 				pokemon.elements.spriteEl.classList.remove(type);
 			}
 		})
+	})
+}
+
+function renderDefending() {
+	pokemonArray.forEach(pokemon => {
+		if (pokemon.defending) {
+			pokemon.elements.spriteEl.classList.add('defending');
+			countdown(pokemon.elements.spriteEl, 'defending');
+		} else {
+			pokemon.elements.spriteEl.classList.remove('defending');
+		}
 	})
 }
 

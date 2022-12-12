@@ -19,12 +19,10 @@
 						<% }) %></td>
 						<td><table>
 							<tr id="statgrid">
-								<th><%= p.hp %></th>
-								<th><%= p.attack %></th>
-								<th><%= p.defense %></th>
-								<th><%= p.speed %></th>
-								<th><%= p.specialAttack %></th>
-								<th><%= p.specialDefense %></th>
+								<% const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense']%>
+								<% stats.forEach(stat => { %>
+									<th><%= Math.round((100+pokemon[stat].variation[1])/100*(pokemon[stat].base + pokemon[stat].variation[0])) %></th>
+								<% }) %>
 							</tr>
 						</table></td>
 						<td><form action="/pokemon/<%= pokemon._id %>/battle/<%= p._id %>">

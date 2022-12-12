@@ -516,6 +516,10 @@ a:visited {
 	animation: grow 1s ease-in 1;
 }
 
+.defending {
+	animation: defending 1s linear 1;
+}
+
 .status {
 	animation: backandforth 1s linear 1;
 }
@@ -582,3 +586,12 @@ a:visited {
         background: red;
     }
 }
+
+@keyframes defending {
+	50%, 70%, 100% {
+	   opacity: 1;
+	}
+	60%, 80% {
+	   opacity: 0;
+	}
+ }
