@@ -1,5 +1,4 @@
 // Constants
-
 const playerId = window.location.pathname.match(/(?<=pokemon\/)\w*(?=\/battle)/i)[0];
 const opponentId = window.location.pathname.match(/(?<=battle\/)\w*/)[0];
 
@@ -376,12 +375,12 @@ async function messageProgression(event){
 			}
 			case "win": {
 				let experience = opponentPokemon.experienceGain;
-				await updateExperience(experience);
+				await updateWinnings(experience);
 				break;
 			}
 			case "lose": {
 				let experience = 0;
-				await updateExperience(experience);
+				await updateWinnings(experience);
 				break;
 			}
 			case "draw": {
@@ -392,7 +391,7 @@ async function messageProgression(event){
 					}
 				})
 				let experience = Math.round(opponentPokemon.experienceGain/2);
-				await updateExperience(experience);
+				await updateWinnings(experience);
 				break;
 			}
 			case "redirect": {
@@ -407,8 +406,9 @@ async function messageProgression(event){
 
 // Helper Functions
 
-async function updateExperience(experience) {
+async function updateWinnings(experience) {
 	if (!gainedExperience) {
+
 		playerPokemon.experience += experience;
 
 		let expMessage = (experience) ? `Gained ${experience} experience.` : 'Try again.'
@@ -431,8 +431,19 @@ async function updateExperience(experience) {
 			url: `http://localhost:3000/pokemon/${playerId}`,
 			data,
 		});
+
+
+		const userData = {};
+		userData.money = Math.floor(experience/20);
+
+		console.log(userData);
+		const res2 = await axios({
+			method: 'put',
+			url: `http://localhost:3000/user/${playerPokemon.user}`,
+			data: userData,
+		});
 		
-		console.log(res);
+		console.log(res, res2);
 
 		let newLevel = pokemonLevel(playerPokemon.experience);
 
@@ -440,6 +451,8 @@ async function updateExperience(experience) {
 			playerPokemon.level = newLevel;
 			prepareMessage(`${playerPokemon.elements.nameEl.innerText} reached level ${playerPokemon.level}.`);
 		}
+
+		prepareMessage(`You earned $${userData.money}.`);
 
 		gameState = 'redirect';
 	}
@@ -516,7 +529,7 @@ function turnParser(playerMove) {
 }
 
 function turnStart() {
-	
+
 }
 
 function turnMove(attacker, defender) {
@@ -1030,6 +1043,7 @@ async function getPokemonInfo(object, id) {
 		object.trainer = pokemon.data.trainer;
 		object.images = pokemon.data.images;
 		object.nature = pokemon.data.nature;
+		object.user = pokemon.data.user;
 		
 		let statTotal = 0;
 		stats.forEach(stat => {
@@ -1037,11 +1051,11 @@ async function getPokemonInfo(object, id) {
 				value: calculateStat(pokemon.data[stat], object.level),
 				state: 0
 			};
-			statTotal += pokemon.data[stat]
+			statTotal += Math.round((100+pokemon.data[stat].variation[1])/100*(pokemon.data[stat].base + pokemon.data[stat].variation[0]))
 		})
 
 		let hp = calculateHealth(pokemon.data.hp, object.level);
-		statTotal += pokemon.data.hp;
+		statTotal += Math.round((100+pokemon.data.hp.variation[1])/100*(pokemon.data.hp.base + pokemon.data.hp.variation[0]));
 
 		object.experienceGain = Math.floor((statTotal)*(1+object.level)/14);
 

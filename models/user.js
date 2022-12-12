@@ -9,6 +9,7 @@ const userSchema = new Schema({
   },
   email: String,
   avatar: String,
+  money: Number,
 }, {
   timestamps: true
 });

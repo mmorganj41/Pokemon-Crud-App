@@ -10,6 +10,11 @@
 <body>
 	<nav>
 		<img src="/images/favicon.ico">
+		<div>
+		<% if (user) { %>
+			Money: $<%= user?.money %> 
+		<% } %>
+		</div>
 		<a href="/pokemon">All Pokemon</a>
 		<% if (user) { %>
 			<a href="/pokemon/new">Catch a Pokemon</a>
