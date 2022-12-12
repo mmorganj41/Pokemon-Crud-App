@@ -45,10 +45,29 @@ async function showPokemonMoves(req,res,next) {
 	}
 }
 
+async function deletePokemon(req, res, next) {
+	try {
+		const pokemon = await Pokemon.findById(req.params.id); 
+
+		if (pokemon.user !== null) return res.redirect(`/pokemon`);
+
+		await Move.remove({pokemon:req.params.id});
+
+		pokemon.remove();
+
+		res.send('random deleted pokemon');
+
+	} catch(err) {
+		console.log(err);
+		res.send('error deleting pokemon');
+	}
+}
+
 
 module.exports = {
 	index,
 	show,
 	moveIndex,
 	showPokemonMoves,
+	delete: deletePokemon,
 }

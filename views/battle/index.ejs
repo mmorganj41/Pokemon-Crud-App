@@ -1,5 +1,8 @@
 <%- include('../partials/header') %>
 	<h1>Battle an Opponent</h1>
+	<form action="/pokemon/<%= pokemon._id %>/battle/random">
+		<input type="submit" value="Battle Random" />
+	</form>
 	<div id="battle">
 		<%- include('../partials/pokeshow') %>
 		<div id="opponents">

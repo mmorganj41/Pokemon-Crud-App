@@ -6,24 +6,6 @@ const pokeAPIURL = "https://pokeapi.co/api/v2/";
 
 const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
 
-const natureBoost = {
-	attack: ['lonely', 'brave', 'adamant', 'naughty'],
-	defense: ['bold', 'relaxed', 'impish', 'lax'],
-	speed: ['timid', 'hasty', 'jolly', 'naive'],
-	specialAttack: ['modest', 'mild', 'quiet', 'rash'],
-	specialDefense: ['calm', 'gentle', 'sassy', 'careful'],
-	hp: [],
-}
-
-const natureDrop = {
-	attack: ['bold', 'timid', 'modest', 'calm'],
-	defense: ['lonely', 'hasty', 'mild', 'gentle'],
-	speed: ['brave', 'relaxed', 'quiet', 'sassy'],
-	specialAttack: ['adamant', 'impish', 'jolly', 'careful'],
-	specialDefense: ['naughty', 'lax', 'naive', 'rash'],
-	hp: [],
-}
-
 async function index(req, res, next) {
 	try {
 		const pokemon = await Pokemon.find({})
@@ -78,7 +60,7 @@ async function show(req, res, next) {
 			const levelLearned = moveData.version_group_details[0].level_learned_at;
 			const moveName = moveData.move.name;
 	
-			if (!(moveNames.includes(moveName)) && levelLearned <= pokemonLevel && (learnMethod === 'egg' || learnMethod === 'level-up')) {
+			if (!(moveNames.includes(moveName)) && levelLearned <= pokemonLevel && ['egg', 'machine', 'level-up'].includes(learnMethod)) {
 				filtered.push(moveData.move);
 			}
 			return filtered;
@@ -123,24 +105,24 @@ async function create(req, res, next) {
 			nickname: req.body.nickname,
 			types: pokemonQuery.data.types.map(type => type.type.name),
 			experience: 0,
-			shiny: shinyGen(),
-			nature: natureGen(),
+			shiny: dataFunctions.shinyGen(),
+			nature: dataFunctions.natureGen(),
 			user: req.user._id,
 			trainer: req.user.name,
 			evolution: [],
 		};
 
-		pokemon.images = imageGen(pokemon.shiny, pokemonQuery.data);
+		pokemon.images = dataFunctions.imageGen(pokemon.shiny, pokemonQuery.data);
 
 		stats.forEach(stat => {
 			let statArray = {
 				base: pokemonQuery.data.stats.find(e => e.stat.name === stat.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)).base_stat,
-				variation: statGen(stat, pokemon.nature),
+				variation: dataFunctions.statGen(stat, pokemon.nature),
 			};
 			pokemon[stat] = statArray;
 		});
 
-		let evolutionData = evolutionFinder(evolutionChain.data.chain, pokemonQuery.data.name);
+		let evolutionData = dataFunctions.evolutionFinder(evolutionChain.data.chain, pokemonQuery.data.name);
 
 		evolutionData.forEach(evolution => {
 			pokemon.evolution.push({
@@ -158,53 +140,13 @@ async function create(req, res, next) {
 		res.send('ERROR check terminal');
 	}
 
-	function statGen(name, nature){
-		const direction = (Math.round(Math.random())) ? 1 : -1;
-		const boost = 1 + (natureBoost[name].includes(nature) ? .1 : 0) - (natureDrop[name].includes(nature) ? .1 : 0);
-		return [Math.round(Math.random()*31*boost*100)/100, Math.round((direction * Math.random()*2000)*boost)/100];	
-	}
-	
-	function natureGen(){
-		const natures = ["hardy", "bold", "modest", "calm", "timid", "lonely", "docile", "mild", "gentle", "hasty", "adamant", "impish", "bashful", "careful", "rash", "jolly", "naughty", "lax", "quirky", "naive"];
-		return natures[Math.floor(Math.random()*natures.length)];
-	}
-	
-	function shinyGen() {
-		return Math.floor(Math.random()*1000) === 0;
-	}
-
-}
-
-function evolutionFinder(chain, name) {
-	if (chain.species.name === name) {
-		return (chain.evolves_to);
-	} else if (chain.evolves_to.length === 0) {
-		return null;
-	} else {
-		for (const path of chain.evolves_to) {
-			let result = evolutionFinder(path, name);
-			console.log(result, '<-- result')
-			if (result !== null) {
-				return result;
-			}
-		};
-	} 
-	return null;
-}
-
-function imageGen(bool, query){
-	if (bool) {
-		return [query.sprites.front_shiny, query.sprites.back_shiny];
-	} else {
-		return [query.sprites.front_default, query.sprites.back_default];
-	}
 }
 
 async function deletePokemon(req, res, next) {
 	try {
 		const pokemon = await Pokemon.findById(req.params.id); 
 
-		if (req.user?._id != String(pokemon.user)) return res.redirect(`/pokemon`);
+		if (req.user?._id != String(pokemon.user) || pokemon.user !== null) return res.redirect(`/pokemon`);
 
 		await Move.remove({pokemon:req.params.id});
 

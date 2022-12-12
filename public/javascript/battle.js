@@ -1,6 +1,6 @@
 // Constants
 const playerId = window.location.pathname.match(/(?<=pokemon\/)\w*(?=\/battle)/i)[0];
-const opponentId = window.location.pathname.match(/(?<=battle\/)\w*/)[0];
+const opponentId = document.getElementById('oppid').innerHTML;
 
 const playerPokemon = {};
 const opponentPokemon = {};
@@ -979,7 +979,7 @@ function damageParser(attacker, move, defender) {
 	defender.hp[0] = (damage > defender.hp[0]) ? 0 : defender.hp[0]-damage;
 
 	if (move.meta.drain > 0 && attacker.status.healblock === undefined) {
-		let drain = Math.round(damage*drain/100);
+		let drain = Math.round(damage*move.meta.drain/100);
 		if (drain) {
 			attacker.hp[0] = (drain + attacker.hp[0] > attacker.hp[1]) ? attacker.hp[1] : drain + attacker.hp[0];
 			prepareMessage(`${attacker.elements.nameEl.innerText} drained some life.`);
@@ -1080,6 +1080,13 @@ async function getPokemonInfo(object, id) {
 			object.moves[index].pp = [pp, pp];
 		})
 
+		if (object.user === null) {
+			await axios({
+				method: 'delete',
+				url: `http://localhost:3000/api/pokemon/${id}`,
+			})
+		}
+
 	} catch(err) {
 		console.log(err);
 	}
@@ -1096,6 +1103,7 @@ async function getPokemonInfo(object, id) {
 		return Math.round(((Math.round((100+stat.variation[1])/100*(stat.base + stat.variation[0])))*(level+1))/100 + 5);
 	}
 }
+
 
 function pokemonLevel(experience) {
 	return Math.min(Math.floor(experience ** (1 / 3)), 100);
