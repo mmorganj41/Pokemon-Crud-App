@@ -200,6 +200,7 @@ const struggle = {
 	pp: [Infinity, Infinity],
 	target: "random-opponent",
 	statchange: [],
+	info: '',
 	meta: {
 		ailment: {
 			name: "none",
@@ -233,6 +234,7 @@ const confusedAttack = {
 	pp: [Infinity, Infinity],
 	target: "random-opponent",
 	statchange: [],
+	info: '',
 	meta: {
 		ailment: {
 			name: "none",
@@ -270,6 +272,7 @@ let movesForTurn;
 let messageArray;
 let gainedExperience;
 let move;
+let blownAway;
 
 // Dom elements
 
@@ -385,13 +388,15 @@ async function messageProgression(event){
 				break;
 			}
 			case "draw": {
-				pokemonArray.forEach(p => {
-					if (!p.faintFirst) {
-						prepareMessage(`${p.elements.nameEl.innerText} fainted.`);
-						p.fainted = true;
-					}
-				})
-				let experience = Math.round(opponentPokemon.experienceGain/2);
+				if (!blownAway) {
+					pokemonArray.forEach(p => {
+						if (!p.faintFirst) {
+							prepareMessage(`${p.elements.nameEl.innerText} fainted.`);
+							p.fainted = true;
+						}
+					})
+				}
+				let experience = 0;
 				await updateWinnings(experience);
 				break;
 			}
@@ -412,8 +417,7 @@ async function updateWinnings(experience) {
 
 		playerPokemon.experience += experience;
 
-		let expMessage = (experience) ? `Gained ${experience} experience.` : 'Try again.'
-		prepareMessage(expMessage);
+		if (experience) prepareMessage(`Gained ${experience} experience.`);
 
 		const data = {};
 		data.experience = playerPokemon.experience;
@@ -437,7 +441,6 @@ async function updateWinnings(experience) {
 		const userData = {};
 		userData.money = Math.floor(experience/20);
 
-		console.log(userData);
 		const res2 = await axios({
 			method: 'put',
 			url: `http://localhost:3000/user/money`,
@@ -543,8 +546,8 @@ function turnMove(attacker, defender) {
 	}
 
 	postAct(attacker, defender);
-	if (attacker.hp[0] <= 0 || defender.hp[0] <= 0) {
-		gameState = battlePath[gameState][2]
+	if (attacker.hp[0] <= 0 || defender.hp[0] <= 0 || blownAway) {
+		gameState = 'gameOver'
 		if (defender.hp[0] <= 0) {
 			defender.faintFirst = true;
 		} else {
@@ -554,7 +557,7 @@ function turnMove(attacker, defender) {
 		firstMove = false;
 		gameState = battlePath[gameState][0];
 	} else {
-		gameState = battlePath[gameState][1];
+		gameState = 'actions';
 	}
 }
 
@@ -570,7 +573,9 @@ function preAct(attacker, defender) {
 		} else {
 			if (attacker.status[state] <= 0) {
 				attacker.status[state] = undefined;
-				prepareMessage(`${state} wore off.`);
+				if (state !== 'charging') {
+					prepareMessage(`${state} wore off.`);
+				}
 				if (state === 'disable') {
 					attacker.disabledMove = undefined;
 				}
@@ -727,7 +732,7 @@ function performMove(attacker, defender) {
 	move.pp[0] --; 
 
 
-	if (/user charges/i.test(move.info) && !attacker.status.charging) {
+	if (move.bool.bCharge && !attacker.status.charging) {
 		attacker.status.charging = 2;
 		prepareMessage(`${attacker.elements.nameEl.innerText} is charging its attack.`);
 		return;
@@ -745,26 +750,24 @@ function performMove(attacker, defender) {
 		}
 	}
 
+	if (move.bool.bMTurn && !attacker.status.charging) {
+		attacker.status.charging = Math.floor(Math.random()*(move.meta.max_turns-move.meta.min_turns))+move.meta.min_turns;
+	}
+	
 	prepareMessage(`${attacker.elements.nameEl.innerText} used ${move.name}.`);	
 
-	if (/recharge/i.test(move.info)) {
+	if (move.bool.bRecharge) {
 		attacker.status.recharge = 2;
 	} 
 
-	if (/user charges/i.test(move.info)) {
+	if (move.bool.bCharge) {
 		move.pp[0] ++;
 	}
 
-	if (/user/i.test(move.target)) {
-		if (move.statchange.length > 0) {
-			move.statchange.forEach(s => {
-				statBoost(attacker, s);
-			})
-		} 
-	} else {
+	if (!/user/i.test(move.target)) {
 		let miss = false;
 
-		if (move.accuracy) {
+		if (move.bool.bMiss) {
 			miss = (Math.random()*100 > move.accuracy*accEvadeMultiplier(attacker.accuracy.state)/accEvadeMultiplier(defender.evasion.state));
 			if (miss) prepareMessage('It missed.');
 		}
@@ -772,6 +775,12 @@ function performMove(attacker, defender) {
 		switch (move.damageClass) {
 			case 'status':
 				if (!miss) {
+					if (move.bool.bForceSwitch) {
+						defender.blownAway = true;
+						blownAway = true;
+						return;
+					}
+
 					if (move.statchange.length > 0) {
 						move.statchange.forEach(s => {
 							statBoost(defender, s);
@@ -795,31 +804,38 @@ function performMove(attacker, defender) {
 		}
 	}
 
-	if (move.meta.healing > 0) {
+	if (move.bool.bHealing) {
 		let healing = healthRegeneration(attacker, move.meta.healing);
 		if (healing) {
 			prepareMessage(`${attacker.elements.nameEl.innerText} healed some health.`);
 		} else if (healing === false){
 			prepareMessage(`${attacker.elements.nameEl.innerText} healed to full.`);
 		}
-	} else if (move.meta.healing < 0) {
+	} else if (move.bool.bRecoil) {
 		healthDegeneration(attacker, -move.meta.healing)
 		prepareMessage(`${attacker.elements.nameEl.innerText} took some damage from recoil.`);
 	}
 
-	if (move.statchange.length > 0) {
+	if (move.bool.bAttackerStat) {
 		if (Math.random()*100 < move.effectChance) {
-			if (/the user's/i.test(move.info)) {
-				move.statchange.forEach(s => {
-					statBoost(attacker, s);
-				})
-			} else {
-				move.statchange.forEach(s => {
-					statBoost(defender, s);
-				})
-			}
+			move.statchange.forEach(s => {
+				statBoost(attacker, s);
+			})
 		}
-	} 
+	} else if (move.bool.bDefenderStat){
+		if (Math.random()*100 < move.effectChance) {
+			move.statchange.forEach(s => {
+				statBoost(defender, s);
+			})
+		}
+	}
+	
+	if (move.bool.bMTurn && attacker.status.charging === 1 && move.bool.bSelfAilment){
+		if (attacker.status.confusion === undefined) {
+			prepareMessage(`${attacker.elements.nameEl.innerText} became confused due to fatigue.`);
+			attacker.status.confusion = Math.floor(Math.random()*3)+2;
+		}
+	}
 
 	function statBoost(pokemon, statChange) {
 		let statName = statChange.stat.name.replace(/-[a-z]/, match => match[1].toUpperCase());
@@ -846,9 +862,8 @@ function performMove(attacker, defender) {
 	}
 
 	function ailmentParser(attacker, move, defender) {
-		const name = move.meta.ailment.name.replace('-', '');
-		if (name !== "none" && Math.random()*100 < (move.meta.ailment_chance || 100)) {
-			if (mainStatuses.includes(name) && defender.status.main.state === "none") {
+		if (move.bool.bAilment && Math.random()*100 < (move.meta.ailment_chance || 100)) {
+			if (mainStatuses.includes(move.meta.ailment.name) && defender.status.main.state === "none") {
 
 				let immune = false; 
 
@@ -857,83 +872,83 @@ function performMove(attacker, defender) {
 				})
 
 				if (!immune) {
-					if (name === 'sleep') {
+					if (move.meta.ailment.name === 'sleep') {
 						prepareMessage(`${defender.elements.nameEl.innerText} has fallen asleep.`)
 						defender.status.main.duration = Math.floor(Math.random()*3)+2
-					} else if (name === 'paralysis'){
+					} else if (move.meta.ailment.name === 'paralysis'){
 						prepareMessage(`${defender.elements.nameEl.innerText} was paralyzed.`);
 					} else {
-						prepareMessage(`${defender.elements.nameEl.innerText} was ${name.replace(/e?$/, 'ed')}.`);
+						prepareMessage(`${defender.elements.nameEl.innerText} was ${move.meta.ailment.name.replace(/e?$/, 'ed')}.`);
 					}
-					defender.status.main.state = name;
+					defender.status.main.state = move.meta.ailment.name;
 				}
 			} else {
-				if (name === 'unknown') {
+				if (move.meta.ailment.name === 'unknown') {
 
-				} else if (name !== 'ingrain' && defender.status[name] === undefined) {
+				} else if (move.meta.ailment.name !== 'ingrain' && defender.status[move.meta.ailment.name] === undefined) {
 					
-					switch (name) {
+					switch (move.meta.ailment.name) {
 						case 'confusion':
 							prepareMessage(`${defender.elements.nameEl.innerText} was confused.`);
-							defender.status[name] = Math.floor(Math.random()*3)+2;
+							defender.status[move.meta.ailment.name] = Math.floor(Math.random()*3)+2;
 							break;
 						case 'infatuation':
 							prepareMessage(`${defender.elements.nameEl.innerText} was infatuated.`);
-							defender.status[name] = Infinity;
+							defender.status[move.meta.ailment.name] = Infinity;
 							break;
 						case 'trap':
 							prepareMessage(`${defender.elements.nameEl.innerText} was trapped.`);
-							defender.status[name] = [2, 2, 2, 3, 3, 3, 4, 5][Math.floor(Math.random()*8)];
+							defender.status[move.meta.ailment.name] = [2, 2, 2, 3, 3, 3, 4, 5][Math.floor(Math.random()*8)];
 							break;
 						case 'nightmare':
 							prepareMessage(`${defender.elements.nameEl.innerText} has a nightmare.`);
-							defender.status[name] = Infinity;
+							defender.status[move.meta.ailment.name] = Infinity;
 							break;
 						case 'torment':
 							prepareMessage(`${defender.elements.nameEl.innerText} is unable to use the same move twice in a row.`);
-							defender.status[name] = Infinity;
+							defender.status[move.meta.ailment.name] = Infinity;
 							break;
 						case 'disable':
 							prepareMessage(`${defender.elements.nameEl.innerText}'s ${defender.lastMove} was disabled.`);
-							defender.status[name] = Math.floor(Math.random()*3)+4;
+							defender.status[move.meta.ailment.name] = Math.floor(Math.random()*3)+4;
 							defender.disabledMove = defender.previousMove;
 							break;
 						case 'yawn':
 							if (defender.status.main.state === 'none') {
 								prepareMessage(`${defender.elements.nameEl.innerText} is getting sleepy.`);
-								defender.status[name] = 1;
+								defender.status[move.meta.ailment.name] = 1;
 							}
 							break;
 						case 'healblock':
 							prepareMessage(`${defender.elements.nameEl.innerText} can't heal.`);
-							defender.status[name] = 5;
+							defender.status[move.meta.ailment.name] = 5;
 							break;
 						case 'notypeimmunity':
 							prepareMessage(`${defender.elements.nameEl.innerText} was sleuthed.`);
-							defender.status[name] = Infinity;
+							defender.status[move.meta.ailment.name] = Infinity;
 							break;
 						case 'leechseed':
 							if (!defender.types.includes('grass')) {
 								prepareMessage(`${defender.elements.nameEl.innerText} was seeded.`);
-								defender.status[name] = Infinity;
+								defender.status[move.meta.ailment.name] = Infinity;
 							}
 							break;
 						case 'embargo':
 							prepareMessage(`${defender.elements.nameEl.innerText} cannot use items.`);
-							defender.status[name] = 5;
+							defender.status[move.meta.ailment.name] = 5;
 							break;
 						case 'perishsong':
-							defender.status[name] = 3;
-							attacker.status[name] = 4;
+							defender.status[move.meta.ailment.name] = 3;
+							attacker.status[move.meta.ailment.name] = 4;
 							break;
 					}
 						
-				} else if (name === 'ingrain' && defender.status.ingrain === undefined) {
+				} else if (move.meta.ailment.name === 'ingrain' && defender.status.ingrain === undefined) {
 					defender.status.ingrain = Infinity;
 				}
 			}
 		}
-		if (move.meta.flinch_chance > 0) {
+		if (move.bool.bFlinch) {
 			if (Math.random()*100 < move.meta.flinch_chance) {
 				defender.status.flinch = 1;
 			}
@@ -972,7 +987,7 @@ function moveParser(move) {
 	}
 
 	if (move.statchange.length > 0) {
-		if((!bMiss && bDamage === false) || (bDamage === true && /the user's/i.test(move.info))) {
+		if((!bool.bMiss && bool.bDamage === false) || (bool.bDamage === true && /the user's/i.test(move.info))) {
 			bool.bAttackerStat = true;
 		} else {
 			bool.bDefenderStat = true;
@@ -980,6 +995,7 @@ function moveParser(move) {
 	}
 
 	if (move.meta.ailment.name !== 'none') {
+		move.meta.ailment.name = move.meta.ailment.name.replace('-', '');
 		bool.bAilment = true;
 	}
 
@@ -1009,12 +1025,18 @@ function moveParser(move) {
 			move.meta.min_turns = 5;
 			move.meta.max_turns = 5;
 		}
-
 	}
 
 	if (move.meta.max_hits > 1) {
 		bool.bMAttack = true;
 	}
+
+	if (move.meta.healing > 0) {
+		bool.bHealing = true;
+	} else if (move.meta.healing < 0) {
+		bool.bRecoil = true;
+	}
+
 
 	if (move.meta.flinch_chance > 0){
 		bool.bFlinch = true;
@@ -1037,6 +1059,12 @@ function moveParser(move) {
 }
 
 function damageParser(attacker, move, defender) {
+	if (move.bool.bOneHit) {
+		defender.hp[0] = 0;
+		defender.defending = true
+		return;
+	} 
+
 	let burn = 1;
 	let attack;
 	let defense;
@@ -1077,7 +1105,7 @@ function damageParser(attacker, move, defender) {
 
 	let damage = Math.floor(((((2*attacker.level)/5+2)*move.power*attack/defense)/50+2)*weatherMult*critical*random*stab*type*burn);
 
-	if (move.meta.max_hits > 1) {
+	if (move.bool.bMattack) {
 		let hits = Math.floor(Math.random()*(move.meta.max_hits-move.meta.min_hits)+move.meta.min_hits);
 		prepareMessage(`${move.name} hit ${hits} time(s).`);
 		damage *= hits;
@@ -1085,7 +1113,7 @@ function damageParser(attacker, move, defender) {
 
 	defender.hp[0] = (damage > defender.hp[0]) ? 0 : defender.hp[0]-damage;
 
-	if (move.meta.drain > 0 && attacker.status.healblock === undefined) {
+	if (move.bool.bDrain && attacker.status.healblock === undefined) {
 		let drain = Math.round(damage*move.meta.drain/100);
 		if (drain) {
 			attacker.hp[0] = (drain + attacker.hp[0] > attacker.hp[1]) ? attacker.hp[1] : drain + attacker.hp[0];
@@ -1093,7 +1121,7 @@ function damageParser(attacker, move, defender) {
 		}
 	}
 
-	defender.defending = true;
+	if (damage > 0) defender.defending = true;
 }
 
 
@@ -1115,7 +1143,8 @@ function endGame() {
 		gameState = battlePath[gameState][0];
 		opponentPokemon.fainted = true;
 	} else {
-		prepareMessage('error.');
+		prepareMessage(`${pokemonArray.find(e => e.blownAway).elements.nameEl.innerText} was blown away.`);
+		gameState = battlePath[gameState][2];
 	}
 }
 
@@ -1185,6 +1214,7 @@ async function getPokemonInfo(object, id) {
 			object.moves[index].power = Math.floor(object.moves[index].power*(1+level*.03));
 			const pp = Math.floor(object.moves[index].pp*(1+level*.05));
 			object.moves[index].pp = [pp, pp];
+			moveParser(object.moves[index]);
 		})
 
 		if (object.user === null) {
@@ -1224,6 +1254,9 @@ init();
 async function init() {
 	await getPokemonInfo(playerPokemon, playerId);
 	await getPokemonInfo(opponentPokemon, opponentId);
+
+	moveParser(struggle);
+	moveParser(confusedAttack);
 
 	gainedExperience = false;
 	gameState = 'start';
@@ -1338,7 +1371,10 @@ function renderFainted() {
 		if (pokemon.fainted) {
 			pokemon.elements.spriteEl.classList.add("fainted");
 			countdown(pokemon.elements.spriteEl);
-		} 
+		} else if (pokemon.blownAway) {
+			pokemon.elements.spriteEl.classList.add("blownaway");
+			countdown(pokemon.elements.spriteEl);
+		}
 	})
 }
 

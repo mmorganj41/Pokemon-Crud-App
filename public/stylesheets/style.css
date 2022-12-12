@@ -495,6 +495,18 @@ a:visited {
 	animation: fainting 1s ease forwards;
 }
 
+#opponentpokemon .blownaway {
+	overflow: hidden;
+	--Xblown: 14em;
+	animation: blown .75s linear forwards;
+}
+
+#userpokemon .blownaway {
+	overflow: hidden;
+	--Xblown: -16em;
+	animation: blown .75s linear forwards;
+}
+
 #userpokemon .physical {
 	--Xdirection: 5em;
 	animation: xaxis .5s linear 2 alternate; 
@@ -591,6 +603,13 @@ a:visited {
 	} to {
 		transform: translateY(var(--Yfaint));
 		height: 0;
+	}
+ }
+
+ @keyframes blown {
+	to {
+		visibility: hidden;
+		transform: translateX(var(--Xblown));
 	}
  }
  
