@@ -130,12 +130,17 @@ async function random(req, res, next){
 		opponent._id = opDocument._id;
 
 		const moveOptions = pokemonQuery.data.moves.reduce((filtered, moveData) => {
-			const learnMethod = moveData.version_group_details[0].move_learn_method.name;
-			const levelLearned = moveData.version_group_details[0].level_learned_at;
-			const moveName = moveData.move.name;
-	
-			if (levelLearned <= opponent.level && (learnMethod === 'egg' || learnMethod === 'level-up')) {
-				filtered.push(moveData.move);
+			const index = moveData.version_group_details.findIndex(details => {
+				return details.version_group.name === "emerald";
+			})
+
+			if (index >= 0) {
+				const learnMethod = moveData.version_group_details[index].move_learn_method.name;
+				const levelLearned = moveData.version_group_details[index].level_learned_at;
+		
+				if (levelLearned <= opponent.level && ['egg', 'level-up'].includes(learnMethod)) {
+					filtered.push(moveData.move);
+				}
 			}
 			return filtered;
 		}, [])
@@ -143,6 +148,7 @@ async function random(req, res, next){
 		const moveCount = Math.ceil(Math.random()*4)+2;
 
 		for (let i = 0; i < moveCount; i++) {
+			if (moveOptions.length === 0) break;
 			const randomIndex = Math.floor(Math.random()*moveOptions.length);
 			opponent.moves.push(moveOptions.splice(randomIndex, 1)[0]);
 		}

@@ -57,12 +57,18 @@ async function show(req, res, next) {
 		pokemon.moves = moves;
 
 		const moveOptions = pokemonQuery.data.moves.reduce((filtered, moveData) => {
-			const learnMethod = moveData.version_group_details[0].move_learn_method.name;
-			const levelLearned = moveData.version_group_details[0].level_learned_at;
-			const moveName = moveData.move.name;
-	
-			if (!(moveNames.includes(moveName)) && levelLearned <= pokemonLevel && ['egg', 'machine', 'level-up'].includes(learnMethod)) {
-				filtered.push(moveData.move);
+			const index = moveData.version_group_details.findIndex(details => {
+				return details.version_group.name === "emerald";
+			})
+
+			if (index >= 0) {
+				const learnMethod = moveData.version_group_details[index].move_learn_method.name;
+				const levelLearned = moveData.version_group_details[index].level_learned_at;
+				const moveName = moveData.move.name;
+		
+				if (!(moveNames.includes(moveName)) && levelLearned <= pokemonLevel && ['egg', 'level-up'].includes(learnMethod)) {
+					filtered.push(moveData.move);
+				}
 			}
 			return filtered;
 		}, [])
@@ -101,7 +107,7 @@ async function create(req, res, next) {
 			name: pokemonQuery.data.name,	
 			nickname: req.body.nickname,
 			types: pokemonQuery.data.types.map(type => type.type.name),
-			experience: 0,
+			experience: 1,
 			shiny: dataFunctions.shinyGen(),
 			nature: dataFunctions.natureGen(),
 			user: req.user._id,
@@ -146,7 +152,7 @@ async function deletePokemon(req, res, next) {
 		if (req.user?._id == String(pokemon.user) || !pokemon.user) {
 			await Move.remove({pokemon:req.params.id});
 
-			if (req.user.currentPokemon.toString() == pokemon._id) {
+			if (req.user.currentPokemon?.toString() == pokemon._id) {
 				const user = await User.findById(req.user._id);
 				user.currentPokemon = null;
 				user.pokemonImage = null;
