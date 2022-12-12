@@ -439,7 +439,7 @@ async function updateWinnings(experience) {
 		console.log(userData);
 		const res2 = await axios({
 			method: 'put',
-			url: `http://localhost:3000/user/${playerPokemon.user}`,
+			url: `http://localhost:3000/user/money`,
 			data: userData,
 		});
 		

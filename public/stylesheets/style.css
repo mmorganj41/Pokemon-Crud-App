@@ -95,8 +95,15 @@ nav a.active {
 	border-radius: 10px;
 }
 
-#battlebutton {
-	margin-bottom: 25px;
+#showcontrollers {
+	margin-bottom: 20px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+#showcontrollers form {
+	margin-bottom: 5px;
 }
 
 #sprite div {
@@ -206,6 +213,10 @@ a:visited {
 
 .release {
 	margin: 50px;
+}
+
+.release input {
+	color: red;
 }
 
 .battlesprite img{

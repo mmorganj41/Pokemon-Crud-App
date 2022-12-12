@@ -2,6 +2,7 @@ const Pokemon = require('../models/pokemon');
 const Move = require('../models/move');
 const dataFunctions = require('../config/datafunctions');
 const axios = require('axios');
+const User = require('../models/user');
 const pokeAPIURL = "https://pokeapi.co/api/v2/";
 
 const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
@@ -67,10 +68,6 @@ async function show(req, res, next) {
 		}, [])
 
 		pokemon.moveOptions = moveOptions;
-
-		console.log(pokemon);
-
-
 		
 		res.render('pokemon/show', {title: 'Pokemon', pokemon});
 	} catch(err) {
@@ -145,15 +142,23 @@ async function create(req, res, next) {
 async function deletePokemon(req, res, next) {
 	try {
 		const pokemon = await Pokemon.findById(req.params.id); 
+		
+		if (req.user?._id == String(pokemon.user) || !pokemon.user) {
+			await Move.remove({pokemon:req.params.id});
 
-		if (req.user?._id != String(pokemon.user) || pokemon.user !== null) return res.redirect(`/pokemon`);
-
-		await Move.remove({pokemon:req.params.id});
-
-		pokemon.remove();
+			if (req.user.currentPokemon.toString() == pokemon._id) {
+				const user = await User.findById(req.user._id);
+				user.currentPokemon = null;
+				user.pokemonImage = null;
+				await user.save();
+			}
+					
+			pokemon.remove();
+	
+		} 
 
 		res.redirect(`/pokemon`);
-
+		
 	} catch(err) {
 		console.log(err);
 		res.send('error deleting pokemon');

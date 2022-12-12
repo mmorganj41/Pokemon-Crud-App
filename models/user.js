@@ -10,6 +10,8 @@ const userSchema = new Schema({
   email: String,
   avatar: String,
   money: Number,
+  currentPokemon: {type: Schema.Types.ObjectId, ref :'Pokemon'},
+  pokemonImage: String,
 }, {
   timestamps: true
 });
