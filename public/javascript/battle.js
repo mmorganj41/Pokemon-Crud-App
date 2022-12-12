@@ -15,7 +15,8 @@ const battlePath = {
 	start: 'actions',
 	actions: ['fight', 'info'],
 	info: ['pokemon', 'moves'],
-	fight: ['playerMove', 'opponentMove'],
+	fight: ['playerMove', 'opponentMove', 'premove'],
+	premove: ['playerMove', 'opponentMove'],
 	playerMove: ['opponentMove', 'actions', 'gameOver'],
 	opponentMove: ['playerMove', 'actions', 'gameOver'],
 	gameOver: ['win', 'lose', 'draw'],
@@ -511,30 +512,34 @@ function turnParser(playerMove) {
 
 	let opponentMove = aiSelect();
 
+	playerPokemon.currentMove = playerMove;
+	opponentPokemon.currentMove = opponentMove;
+
+	turnStart();
+
+}
+
+function turnStart() {
+	pokemonArray.forEach(p => {
+		p.status.flinch = undefined;
+	})
+
 	let playerSpeed = playerPokemon.speed.value*stageMultipliers(playerPokemon.speed.state)*((playerPokemon.status.main.state === "paralysis") ? .5 : 1)
 	let opponentSpeed = opponentPokemon.speed.value*stageMultipliers(opponentPokemon.speed.state)*((opponentPokemon.status.main.state === "paralysis") ? .5 : 1)
-	if (playerMove.priority === opponentMove.priority) {
+	if (playerPokemon.currentMove.priority === opponentPokemon.currentMove.priority) {
 		if (playerSpeed === opponentSpeed) {
 			gameState = Math.round(Math.random()) ? "playerMove" : "opponentMove";
 		} else {
 			gameState = (playerSpeed > opponentSpeed) ? "playerMove" : "opponentMove";
 		}
 	} else {
-		gameState = (playerMove.priority > opponentMove.priority) ? "playerMove" : "opponentMove";
+		gameState = (playerPokemon.currentMove.priority > opponentPokemon.currentMove.priority) ? "playerMove" : "opponentMove";
 	}
-
-	playerPokemon.currentMove = playerMove;
-	opponentPokemon.currentMove = opponentMove;
-
-}
-
-function turnStart() {
-
 }
 
 function turnMove(attacker, defender) {
 	if (preAct(attacker, defender)) {
-		moveParser(attacker, defender);
+		performMove(attacker, defender);
 	}
 
 	postAct(attacker, defender);
@@ -563,7 +568,7 @@ function preAct(attacker, defender) {
 				prepareMessage(`${state} wore off.`)
 			};
 		} else {
-			if (attacker.status[state].duration <= 0) {
+			if (attacker.status[state] <= 0) {
 				attacker.status[state] = undefined;
 				prepareMessage(`${state} wore off.`);
 				if (state === 'disable') {
@@ -571,6 +576,8 @@ function preAct(attacker, defender) {
 				}
 				if (state === 'yawn' && attacker.status.main.state === 'none') {
 					prepareMessage(`${attacker.elements.nameEl.innerText} fell asleep.`);
+					attacker.status.main.state = 'sleep';
+					attacker.status.main.duration = Math.floor(Math.random()*3)+2;
 				}
 			};
 		}	
@@ -597,17 +604,20 @@ function preAct(attacker, defender) {
 				prepareMessage(`${attacker.elements.nameEl.innerText} was unfrozen!`);
 
 			} else {
-				prepareMessage(`${attacker.elements.nameel.innerText} is frozen solid.`);
+				prepareMessage(`${attacker.elements.nameEl.innerText} is frozen solid.`);
 				canAct = false;
 			}
+			break;
 		case "sleep":
-			prepareMessage(`${attacker.elements.nameel.innerText} is fast asleep.`);
+			prepareMessage(`${attacker.elements.nameEl.innerText} is fast asleep.`);
 			canAct = false;
+			break;
 		case "paralysis":
 			if (Math.random()*100 < 25)	{
 				prepareMessage(`${attacker.elements.nameEl.innerText} is paralyzed and cannot move.`);
 				canAct = false;
 			} 
+			break;
 	}
 
 	if (canAct) {
@@ -677,7 +687,9 @@ function postAct(attacker, defender) {
 		if (state === 'main') {
 			attacker.status[state].duration --;
 		} else {
-			attacker.status[state] --;
+			if (attacker.status[state] !== undefined) {
+				attacker.status[state] --;
+			}
 		}
 	}
 
@@ -710,7 +722,7 @@ function healthRegeneration(attacker, percent) {
 	}
 }
 
-function moveParser(attacker, defender) {
+function performMove(attacker, defender) {
 	let move = attacker.currentMove;
 	move.pp[0] --; 
 
@@ -927,6 +939,101 @@ function moveParser(attacker, defender) {
 			}
 		}
 	}
+}
+
+function moveParser(move) {
+	const bool = {
+		bMiss: false,
+		bDamage: false,
+		bAttackerStat: false,
+		bDefenderStat: false,
+		bAilment: false,
+		bSelfAilment: false,
+		bMAttack: false,
+		bRecoil: false,
+		bHealing: false,
+		bDrain: false,
+		bCharge: false,
+		bRecharge: false,
+		bMTurn: false,
+		bFlinch: false,
+		bWeather: false,
+		bFaints: false,
+		bOneHit: false,
+		bForceSwitch: false,
+	}
+
+	if (move.accuracy) {
+		bool.bMiss = true;
+	}
+
+	if (['physical', 'special'].includes(move.damageClass)) {
+		bool.bDamage = true;
+	}
+
+	if (move.statchange.length > 0) {
+		if((!bMiss && bDamage === false) || (bDamage === true && /the user's/i.test(move.info))) {
+			bool.bAttackerStat = true;
+		} else {
+			bool.bDefenderStat = true;
+		}
+	}
+
+	if (move.meta.ailment.name !== 'none') {
+		bool.bAilment = true;
+	}
+
+	if (move.name === 'rest' || /the user becomes confused/i.test(move.info)) {
+		bool.bSelfAilment = true;
+	}
+
+	if (move.meta.drain > 0) {
+		bool.bDrain = true;
+	}
+
+	if (/user charges/i.test(move.info)) {
+		bool.bCharge = true;
+	}
+
+	if (/recharge/i.test(move.info)) {
+		bool.bRecharge = true;
+	} 
+
+	if (/User is forced to (use|attack with) this move for/i.test(move.info)){
+		bool.bMTurn = true;
+		let turnArray = move.info.match(/(?<=this move for ).*(?= turns)/gi)[0].split('–').map(e => Number(e));
+		if (turnArray.length === 2) {
+			move.meta.min_turns = turnArray[0];
+			move.meta.max_turns = turnArray[1];
+		} else {
+			move.meta.min_turns = 5;
+			move.meta.max_turns = 5;
+		}
+
+	}
+
+	if (move.meta.max_hits > 1) {
+		bool.bMAttack = true;
+	}
+
+	if (move.meta.flinch_chance > 0){
+		bool.bFlinch = true;
+	}
+
+	if (/Changes the weather to /i.test(move.info)){
+		bool.bWeather = true;
+	}
+
+	switch (move.meta.category.name) {
+		case "ohko":
+			bool.bOneHit = true;
+			break;
+		case "force-switch":
+			bool.bForceSwitch = true;
+			break;
+	}
+
+	move.bool = bool;
 }
 
 function damageParser(attacker, move, defender) {

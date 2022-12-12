@@ -91,7 +91,7 @@ async function random(req, res, next){
 		pokemon.moves = pokeMoves;
 		pokemon.level = dataFunctions.pokemonLevel(pokemon.experience);
 
-		const randomPokemonNumber = Math.floor(Math.random()*151)+1;
+		const randomPokemonNumber = Math.floor(Math.random()*386)+1;
 
 		const pokemonQuery = await axios({
 			method: 'get',

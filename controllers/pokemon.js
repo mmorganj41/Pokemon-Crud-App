@@ -14,7 +14,7 @@ async function findAvailablePokemon() {
 	try {
 		const pokemon = await axios({
 			method: 'get',
-			url: `${pokeAPIURL}pokemon-species/?limit=251`,
+			url: `${pokeAPIURL}pokemon-species/?limit=386`,
 			headers: {'accept-encoding': 'json'},
 		});
 	
@@ -92,6 +92,8 @@ async function show(req, res, next) {
 		}, [])
 
 		pokemon.moveOptions = moveOptions;
+
+		console.log(pokemon);
 		
 		res.render('pokemon/show', {title: 'Pokemon', pokemon});
 	} catch(err) {
