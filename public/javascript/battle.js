@@ -423,7 +423,8 @@ async function updateWinnings(experience) {
 	if (!gainedExperience) {
 
 		playerPokemon.experience += experience;
-		const percentHealth = Math.round(playerPokemon.hp[0]/playerPokemon.hp[1]*10000)/100;
+		let percentHealth = Math.round(playerPokemon.hp[0]/playerPokemon.hp[1]*10000)/100;
+		percentHealth = Math.max(0, percentHealth);
 		if (experience) prepareMessage(`Gained ${experience} experience.`);
 		const energyLoss = (1000 * 60 * 60 * 6)/40;
 
@@ -764,7 +765,7 @@ function postAct(attacker, defender) {
 function healthDegeneration(attacker, percent) {
 	let totalHealth = Math.ceil(attacker.hp[0] - percent * attacker.hp[1] / 100);
 	if (totalHealth < 0) {
-		attacker.hp[0] = 0;
+		attacker.hp[0] = totalHealth;
 		return false;
 	} else {
 		attacker.hp[0] = totalHealth;
@@ -1212,7 +1213,7 @@ function damageParser(attacker, move, defender) {
 		damage *= hits;
 	}
 
-	defender.hp[0] = (damage > defender.hp[0]) ? 0 : defender.hp[0]-damage;
+	defender.hp[0] = defender.hp[0]-damage;
 
 	if (move.bool.bDrain && attacker.status.healblock === undefined) {
 		let drain = Math.round(damage*move.meta.drain/100);
@@ -1488,7 +1489,7 @@ function renderFainted() {
 
 function renderHealth() {
 	pokemonArray.forEach(pokemon => {
-		let currentHealth = pokemon.hp[0];
+		let currentHealth = (pokemon.hp[0] < 0) ? 0 : pokemon.hp[0];
 
 		const healthbar = {
 			barWidth: (currentHealth / pokemon.hp[1]) * 100,
@@ -1515,7 +1516,7 @@ function renderHealth() {
 			}, 500);
 
 		}
-		pokemon.elements.hpEl.innerText = `${pokemon.hp[0]} / ${pokemon.hp[1]}`;
+		pokemon.elements.hpEl.innerText = `${currentHealth} / ${pokemon.hp[1]}`;
 
 		pokemon.priorHealthValues = currentHealth;
 	})

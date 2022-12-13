@@ -10,6 +10,7 @@ const session = require('express-session');
 const passport = require('passport');
 const methodOverride = require('method-override');
 const publicPath = path.join(__dirname, 'public');
+const MongoStore = require('connect-mongo');
 
 const indexRouter = require('./routes/index');
 const pokemonRouter = require('./routes/pokemon');
@@ -45,10 +46,13 @@ app.use(cookieParser());
 
 
 app.use(session({
-  secret: process.env.SECRET,
-  resave: false,
-  saveUninitialized: true
-}))
+	store: MongoStore.create({
+	  mongoUrl: process.env.DATABASE_URL
+	}),
+	secret: process.env.SECRET,
+	resave: false,
+	saveUninitialized: true
+  }));
 
 
 app.use(passport.initialize());

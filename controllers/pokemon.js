@@ -217,8 +217,9 @@ async function update(req,res,next){
 		pokemon.currentHp = req.body.currentHp;
 
 		let currentDate = new Date();
-		let energyVal = pokemon.energy + req.body.energy;
+		let energyVal = Number(pokemon.energy) + req.body.energy;
 		let newEnergy = new Date(energyVal);
+		console.log(currentDate, energyVal, newEnergy);
 		
 		pokemon.energy = (newEnergy > currentDate) ? currentDate : newEnergy;
 
