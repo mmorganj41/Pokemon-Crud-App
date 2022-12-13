@@ -43,6 +43,9 @@ const pokemonSchema = new Schema(
 			type: statSchema,
 			required: true,
 		},
+		currentHp: Number,
+		energy: Date,
+		hunger: Date,
 		attack: {
 			type: statSchema,
 			required: true,

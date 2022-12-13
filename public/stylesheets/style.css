@@ -46,6 +46,9 @@ nav {
 	overflow: hidden;
 	display: flex;
 	width: 100%;
+	position: sticky;
+	top: 0;
+	z-index: 999;
 }
 
 body > main {
@@ -96,19 +99,27 @@ nav a.active {
 }
 
 #showcontrollers {
-	margin-bottom: 20px;
+	margin-top: 25px;
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	align-items: center;
 }
 
 #showcontrollers form {
-	margin-bottom: 5px;
+	margin: 0 5px;
+}
+
+#showcontrollers input {
+	height: 70px;
+	width: 70px;
+	white-spacE: normal;
 }
 
 #sprite div {
 	background-color: white;
 	border-radius: 10px;
+	display: flex;
+	justify-content: center;
 }
 
 #pokemonshow > div > div{
@@ -201,6 +212,14 @@ td {
 #statgrid {
 	display: grid;
 	grid-template-columns: repeat(6, 1fr);
+}
+#statgrid div {
+	margin: 0px 1px;
+}
+
+.scrollable {
+	overflow:scroll;
+	height: 90%;
 }
 
 a {
@@ -310,6 +329,15 @@ a:visited {
 	visibility: hidden;
 }
 
+#pokemonlist {
+	position: relative;
+}
+
+#pokemonlist th {
+	position: sticky;
+	top: 50px;
+	background-color: white;
+}
 
 
 #opponentpokemon {
@@ -552,6 +580,11 @@ a:visited {
 	justify-content: center;
 }
 
+.ownpoke {
+	background-color: aquamarine;
+	border-radius: 10px;
+}
+
 @keyframes battleidle {
     0% {
 		transform: translateX(-.2em) rotate(-3deg);
@@ -630,3 +663,30 @@ a:visited {
 	   opacity: 0;
 	}
  }
+
+ @media only screen and (max-width: 576px) {
+	#pokemonshow {
+		grid-template-columns: auto;
+		padding: 10px;
+		gap: 10px;
+	}
+	#battle {
+		flex-direction: column-reverse;
+	}
+	#statgrid {
+		grid-template-columns: repeat(3, 1fr);
+		grid-template-rows: repeat(2, 1fr);
+	}
+
+	.nomedia {
+		display: none;
+	}
+}
+
+@media only screen and (min-width: 577px) {
+	#pokemonshow {
+		max-height: 400px;
+		position: sticky;
+		top: 170px;
+	}
+}

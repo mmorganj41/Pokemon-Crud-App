@@ -70,6 +70,11 @@ async function show(req, res, next) {
 	  		headers: {'accept-encoding': 'json'},
 		});
 
+		let currentPokemon;
+		if (req.user?.currentPokemon) {
+			currentPokemon = await Pokemon.findById(req.user.currentPokemon);
+		}
+
 		const moves = await Move.find({pokemon: pokemon._id});
 		const moveNames = moves.map(move => move.name);
 		pokemon.moves = moves;
@@ -95,7 +100,7 @@ async function show(req, res, next) {
 
 		console.log(pokemon);
 		
-		res.render('pokemon/show', {title: 'Pokemon', pokemon});
+		res.render('pokemon/show', {title: 'Pokemon', pokemon, currentPokemon});
 	} catch(err) {
 		console.log(err);
 		res.redirect('/pokemon');
@@ -136,6 +141,9 @@ async function create(req, res, next) {
 		};
 
 		pokemon.images = dataFunctions.imageGen(pokemon.shiny, pokemonQuery.data);
+		pokemon.currentHp = 100;
+		pokemon.energy = new Date();
+		pokemon.hunger = new Date();
 
 		stats.forEach(stat => {
 			let statArray = {
@@ -204,6 +212,7 @@ async function update(req,res,next){
 		})
 
 		pokemon.experience = req.body.experience;
+		pokemon.currentHp = req.body.currentHp;
 
 		await pokemon.save();
 
@@ -247,11 +256,11 @@ async function evolve(req, res, next) {
 			stats.forEach(stat => {
 				pokemon[stat].base = evolution.data.stats.find(e => e.stat.name === stat.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)).base_stat;
 			});
-			pokemon.images = imageGen(pokemon.shiny, evolution.data);
+			pokemon.images = dataFunctions.imageGen(pokemon.shiny, evolution.data);
 			pokemon.types = evolution.data.types.map(type => type.type.name);
 			pokemon.evolution = [];
 
-			let evolutionData = evolutionFinder(evolutionChain.data.chain, evolutionName);
+			let evolutionData = dataFunctions.evolutionFinder(evolutionChain.data.chain, evolutionName);
 			evolutionData.forEach(evolution => {
 				pokemon.evolution.push({
 					species: evolution.species,

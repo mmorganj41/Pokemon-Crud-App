@@ -1,8 +1,11 @@
 <%- include('../partials/header') %>
+<% const canBattle = pokemon.currentHp > 0 %> 
 	<h1>Battle an Opponent</h1>
+	<% if (canBattle) { %> 
 	<form action="/pokemon/<%= pokemon._id %>/battle/random">
 		<input type="submit" value="Battle Random" />
 	</form>
+	<% } %> 
 	<div id="battle">
 		<%- include('../partials/pokeshow') %>
 		<div id="opponents">
@@ -12,7 +15,11 @@
 					<th>Level</th>
 					<th>Types</th>
 					<th>Stats</th>
+					<% if (canBattle) { %>
+					<th></th>
+					<% } %>
 				</tr>
+				<div class="scrollit">
 				<% opponents.forEach(p => { %>
 					<tr class="opponentrows">
 						<td><a href="/pokemon/<%= p._id %>"><%= p.name[0].toUpperCase() + p.name.substring(1, p.name.length) %></a></td>
@@ -20,22 +27,25 @@
 						<td><% p.types.forEach(type => { %>
 							<div><%= type %> </div>
 						<% }) %></td>
-						<td><table>
-							<tr id="statgrid">
+						<td id="statgrid">
 								<% const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense']%>
 								<% stats.forEach(stat => { %>
-									<th><%= Math.round((100+p[stat].variation[1])/100*(p[stat].base + p[stat].variation[0])) %></th>
+									<div><%= Math.round((100+p[stat].variation[1])/100*(p[stat].base + p[stat].variation[0])) %></div>
 								<% }) %>
-							</tr>
-						</table></td>
-						<td><form action="/pokemon/<%= pokemon._id %>/battle/<%= p._id %>">
-							<input type="submit" value="Battle!" />
-						</form>
 						</td>
+						<% if (canBattle) { %>
+							<td><form action="/pokemon/<%= pokemon._id %>/battle/<%= p._id %>">
+								<input type="submit" value="Battle!" />
+							</form>
+							</td>
+						<% } %>
 					</tr>
 				<% }) %>
+				</div>
 			</table>
 		</div>
 	</div>
+
+	<script src="/javascript/filter.js"></script>
 
 <%- include('../partials/footer') %>

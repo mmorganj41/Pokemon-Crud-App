@@ -32,6 +32,12 @@ const statusImmunities = {
 	ice: 'freeze',
 }
 
+const terrainBonus = {
+	grassy: 'grass',
+	electric: 'electric',
+	psychic: 'psychic',
+}
+
 const moveDamage = {
 	normal: {
 		rock: .5,
@@ -266,6 +272,7 @@ const stats = ['attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
 let message;
 let gameState;
 let weather;
+let terrain;
 let firstClick;
 let firstMove;
 let movesForTurn;
@@ -324,6 +331,7 @@ async function messageProgression(event){
 			case "fight":
 				if (event.target.classList.contains('move')) {
 					turnParser(event.target.classList[0]);
+					if (message) break;
 					if (gameState === 'playerMove') {
 						turnMove(playerPokemon, opponentPokemon);
 
@@ -406,7 +414,6 @@ async function messageProgression(event){
 			}
 		}
 	}
-
 	render()
 }
 
@@ -416,12 +423,13 @@ async function updateWinnings(experience) {
 	if (!gainedExperience) {
 
 		playerPokemon.experience += experience;
-
+		const percentHealth = Math.round(playerPokemon.hp[0]/playerPokemon.hp[1]*10000)/100;
 		if (experience) prepareMessage(`Gained ${experience} experience.`);
 
 		const data = {};
 		data.experience = playerPokemon.experience;
 		data.moves = [];
+		data.currentHp = percentHealth;
 		playerPokemon.moves.forEach(move => {
 			move.experience += Math.floor(experience/10);
 			data.moves.push({
@@ -526,6 +534,53 @@ function turnStart() {
 	pokemonArray.forEach(p => {
 		p.status.flinch = undefined;
 	})
+	weather.duration --;
+	terrain.duration --;
+	if (weather.duration <= 0) {
+		weather.state = 'normal';
+		prepareMessage('The weather returned to normal');
+	}
+	if (terrain.duration <= 0) {
+		terrain.state = 'normal';
+		prepareMessage('The weather returned to normal');
+	}
+
+	switch (weather.state) {
+		case 'harsh sunlight':
+			prepareMessage("The sunlight is strong.");
+			break;
+		case 'rain':
+			prepareMessage("Rain continues to fall.");
+			break;
+		case 'hail':
+			prepareMessage("Hail continues to fall.");
+			pokemonArray.forEach(p => {
+				if (!p.types.some(t => t === 'ice')) {
+					healthDegeneration(p, 6.25);
+					prepareMessage(`${p.elements.nameEl.innerText} took damage.`);
+				};
+			})
+			break;
+		case 'sandstorm':
+			prepareMessage('The sandstorm rages.');
+			pokemonArray.forEach(p => {
+				if (!p.types.some(t => ['ground', 'rock', 'steel'].includes(t))) {
+					healthDegeneration(p, 6.25);
+					prepareMessage(`${p.elements.nameEl.innerText} took damage.`);
+				};
+			})
+			break;
+	}
+
+	switch (terrain.state) {
+		case 'grassy':
+			pokemonArray.forEach(p => {
+				healthRegeneration(p, 6.25);
+				prepareMessage(`${p.elements.nameEl.innerText} was healed by the grassy terrain.`);
+			})
+			break;
+	}
+
 
 	let playerSpeed = playerPokemon.speed.value*stageMultipliers(playerPokemon.speed.state)*((playerPokemon.status.main.state === "paralysis") ? .5 : 1)
 	let opponentSpeed = opponentPokemon.speed.value*stageMultipliers(opponentPokemon.speed.state)*((opponentPokemon.status.main.state === "paralysis") ? .5 : 1)
@@ -568,7 +623,7 @@ function preAct(attacker, defender) {
 		if (state === 'main') {
 			if (attacker.status[state].duration <= 0) {
 				attacker.status[state].state = 'none';
-				prepareMessage(`${state} wore off.`)
+				prepareMessage(`${attacker.status[state].state} wore off.`)
 			};
 		} else {
 			if (attacker.status[state] <= 0) {
@@ -837,6 +892,33 @@ function performMove(attacker, defender) {
 		}
 	}
 
+	if (move.bool.bWeather && weather.state === "normal") {
+		let weatherName = move.info.match(/(?<= the weather to ).*(?= for five)/)[0];
+		switch (weatherName) {
+			case 'sunshine':
+				weather.state = 'harsh sunlight';
+				break;
+			case 'hail':
+				weather.state = 'hail';
+				break;
+			case 'rain':
+				weather.state = 'rain';
+				break;
+			case 'a sandstorm':
+				weather.state = 'sandstorm';
+				break;
+		}
+		prepareMessage(`The weather changed to ${weather.state}`);
+		weather.duration = 6;
+	}
+
+	if (move.bool.bTerrain && terrain.state === "normal") {
+		let terrainName = move.name.match(/.*(?=-terrain)/)[0];
+		weather.state = terrainName;
+		prepareMessage(`The terrain is now ${terrain.state}`);
+		weather.duration = 6;
+	}
+
 	function statBoost(pokemon, statChange) {
 		let statName = statChange.stat.name.replace(/-[a-z]/, match => match[1].toUpperCase());
 		let result = pokemon[statName].state + statChange.change;
@@ -976,6 +1058,7 @@ function moveParser(move) {
 		bFaints: false,
 		bOneHit: false,
 		bForceSwitch: false,
+		bTerrain: false,
 	}
 
 	if (move.accuracy) {
@@ -1037,7 +1120,6 @@ function moveParser(move) {
 		bool.bRecoil = true;
 	}
 
-
 	if (move.meta.flinch_chance > 0){
 		bool.bFlinch = true;
 	}
@@ -1053,6 +1135,10 @@ function moveParser(move) {
 		case "force-switch":
 			bool.bForceSwitch = true;
 			break;
+	}
+
+	if (/terrain/.test(move.name)) {
+		bool.bTerrain = true;
 	}
 
 	move.bool = bool;
@@ -1088,6 +1174,7 @@ function damageParser(attacker, move, defender) {
 			attack = attacker.specialAttack.value*stageMultipliers(attacker.specialAttack.state);
 			defense = defender.specialDefense.value*stageMultipliers(defender.specialDefense.state);
 		}
+		if (weather.state === 'sandstorm' && defender.types.includes('rock')) defense *= 1.5;
 	}
 	let stab = (attacker.types.includes(move.type)) ? 1.2 : 1;
 	let type = (defender.types.reduce((total, type) => {
@@ -1101,11 +1188,23 @@ function damageParser(attacker, move, defender) {
 		prepareMessage("It's super effective!");
 	}
 
-	let weatherMult = ((weather.state === "rain" && move.type === "water") || (weather.state === "harsh sunlight" && move.type === "fire")) ? 1.5 : 1;
+	let weatherMult = 1;
+	if ((weather.state === "rain" && move.type === "water") || (weather.state === "harsh sunlight" && move.type === "fire")) {
+		weatherMult = 1.5;
+	} else if ((weather.state === "rain" && move.type === "fire") || (weather.state === "harsh sunlight" && move.type === "water")) {
+		weatherMult = .5;
+	} 
 
-	let damage = Math.floor(((((2*attacker.level)/5+2)*move.power*attack/defense)/50+2)*weatherMult*critical*random*stab*type*burn);
+	let terrainMult = 1
+	if (terrainBonus[terrain.state] === move.type) {
+		terrainMult = 1.5;
+	} else if (terrain.state === 'misty' && move.type === 'dragon') {
+		terrainMult = .5;
+	}
 
-	if (move.bool.bMattack) {
+	let damage = Math.floor(((((2*attacker.level)/5+2)*move.power*attack/defense)/50+2)*weatherMult*terrainMult*critical*random*stab*type*burn);
+
+	if (move.bool.bMAttack) {
 		let hits = Math.floor(Math.random()*(move.meta.max_hits-move.meta.min_hits)+move.meta.min_hits);
 		prepareMessage(`${move.name} hit ${hits} time(s).`);
 		damage *= hits;
@@ -1180,6 +1279,7 @@ async function getPokemonInfo(object, id) {
 		object.images = pokemon.data.images;
 		object.nature = pokemon.data.nature;
 		object.user = pokemon.data.user;
+		object.playerHp = pokemon.data.currentHp;
 		
 		let statTotal = 0;
 		stats.forEach(stat => {
@@ -1200,6 +1300,8 @@ async function getPokemonInfo(object, id) {
 			stage: 0,
 		};
 		object.hp = [hp, hp];
+		object.priorHealthValues = object.hp[0]
+
 		object.accuracy = {state: 0};
 		object.evasion = {state: 0};
 		object.status = {main: {
@@ -1266,14 +1368,18 @@ async function init() {
 		state: "normal", 
 		duration: Infinity
 	};
-	playerPokemon.priorHealthValues = playerPokemon.hp[0];
-	opponentPokemon.priorHealthValues = opponentPokemon.hp[0];
+	terrain = {
+		state: "normal", 
+		duration: Infinity
+	};
 
 	[pokemonArray].forEach(p => {
 		p.attacking = false;
 		p.defending = false;
 		p.fainted = false;
 	})
+	renderHealth();
+	playerPokemon.hp[0] = (playerPokemon.playerHp) ? Math.round(playerPokemon.playerHp * playerPokemon.hp[1]/100) : 1;
 
 	render();
 }

@@ -7,17 +7,22 @@
 			<th>Image</th>
 			<th>Nickname</th>
 			<th>Level</th>
-			<th>Trainer</th>
+			<th class="nomedia">Trainer</th>
 		</tr>
+		<div class="scrollable">
 		<% pokemon.forEach(p => { %>
 			<tr>
 				<td><a href="/pokemon/<%= p._id %>"><%= p.name[0].toUpperCase() + p.name.substring(1, p.name.length) %></a></td>
-				<td><img src="<%= p.images[0] %> " alt="sprite"></td>
+				<td><img src="<%= p.images[0] %> " alt="sprite" <% if (user?._id?.equals(p.user)) {%> class="ownpoke" <% }%>></td>
 				<td><%= p.nickname %></td>
 				<td><%= p.level %> </td>
-				<td><%= p.trainer %> </td>
+				<td class="nomedia"><%= p.trainer %> </td>
 			</tr>
+			
 		<% }) %>
-	</div>
+		</div>
+	</table>
+
+	<script src="javascript/filter.js"></script>
 
 <%- include('../partials/footer') %>

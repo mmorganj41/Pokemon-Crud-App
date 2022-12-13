@@ -112,6 +112,9 @@ async function random(req, res, next){
 			user: null,
 			trainer: null,
 			evolution: [],
+			energy: new Date(),
+			hunger: new Date(),
+			currentHp: 100,
 		};
 
 		opponent.images = dataFunctions.imageGen(opponent.shiny, pokemonQuery.data);
@@ -183,7 +186,8 @@ async function random(req, res, next){
 			await Move.create(move);
 		});
 
-		await res.render('battle/show', {title: 'Battle', pokemon, opponent})
+		console.log(opponent);
+		res.render('battle/show', {title: 'Battle', pokemon, opponent})
 
 		function generateExperience(experience) {
 			let variation = Math.random()*.4;
