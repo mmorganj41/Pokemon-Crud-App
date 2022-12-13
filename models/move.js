@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-mongoose.set('strictQuery', true);
 const Schema = mongoose.Schema;
 
 const moveSchema = new Schema(

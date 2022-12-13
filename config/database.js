@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+
 // export the function that creates a database connection
 module.exports = {
   connectDB,
@@ -7,6 +8,8 @@ module.exports = {
 
 async function connectDB() {
   try {
+	mongoose.set('strictQuery', true);
+
     const conn = await mongoose.connect(process.env.DATABASE_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
