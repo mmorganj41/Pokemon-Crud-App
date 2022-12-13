@@ -166,12 +166,12 @@ nav a.active {
 	justify-content: space-around;
 }
 
-#battle {
+#battle, #shop {
 	display: flex;
 	justify-content: space-between;
 }
 
-#opponents {
+#opponents, #items {
 	background-color:rgb(58, 58, 58);
 	border: black solid 2px;
 	border-radius: 10px;

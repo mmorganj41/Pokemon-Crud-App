@@ -279,8 +279,21 @@ async function evolve(req, res, next) {
 		console.log(err);
 		res.send('Error evolving pokemon');
 	}
-	
+}
 
+async function shop(req, res, next) {
+	try {
+		if (!req.user?.currentPokemon) return res.redirect('/');
+
+		const pokemon = await Pokemon.findById(req.user.currentPokemon);
+		const moves = await Move.find({pokemon: pokemon._id});
+		pokemon.moves = moves;
+
+	 	res.render('pokemon/shop', {title: 'Shop', pokemon})
+	} catch(err) {
+		console.log(err);
+		res.send('Error displaying shop');
+	}
 }
 
 module.exports = {
@@ -291,4 +304,5 @@ module.exports = {
 	delete: deletePokemon,
 	update,
 	evolve,
+	shop,
 }

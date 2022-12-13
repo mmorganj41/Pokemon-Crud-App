@@ -1,0 +1,47 @@
+<%- include('../partials/header') %>
+<div id="shop">
+	<div id="pokemonshow">
+		<div id="sprite"><h3><%= pokemon.name[0].toUpperCase() + pokemon.name.substring(1, pokemon.name.length) %></h3>
+			<div>
+				<img src="<%= pokemon.images[0] %>" alt="<%= pokemon.images[0] %>">
+			</div>
+		</div>
+		<div><h3>Info:</h3>
+			<div>
+				<div><div>Nickname:&nbsp;</div><div><%= pokemon.nickname %></div></div>
+				<div><div>Level:&nbsp;</div><div><%= pokemon.level %> (<%= pokemon.experience %>)</div></div>
+				<div><div>CurrentHP:&nbsp;</div><div><%= pokemon.currentHp %></div></div>
+				<div><div>Energy:&nbsp;</div><div><%= pokemon.energy %></div></div>
+				<div><div>Hunger:&nbsp;</div><div><%= pokemon.hunger %></div></div>
+			</div>
+		</div>
+		<div><h3>Stats:</h3>
+			<div>
+				<% const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense']%>
+				<% stats.forEach(stat => { %>
+					<div><div><%= stat.replace(/pecial|ee|tac|ense/ig, '').toUpperCase() %>:&nbsp;</div><div><%= Math.round((100+pokemon[stat].variation[1])/100*(pokemon[stat].base + pokemon[stat].variation[0])) %></div></div>
+				<% }) %>
+			</div>
+		</div>
+		<div><h3>Moves:</h3>
+			<div class="moves">
+				<% pokemon.moves.forEach(move => { %>
+					<div>
+						<div><a href="/moves/<%= move._id %>"><%= move.name %></a></div>
+						<div>
+							<% if (user?._id?.equals(pokemon.user)) { %>
+								<form action="/moves/<%= move._id%>?_method=DELETE" method="post" class="delete">
+									<input type="submit" value="X">
+								</form>
+							<% } %>
+						</div>
+					</div>
+				<% }) %>
+			</div>
+		</div>
+	</div>
+	<div id="items">
+		ITEMS
+	</div>
+</div>
+<%- include('../partials/footer') %>
