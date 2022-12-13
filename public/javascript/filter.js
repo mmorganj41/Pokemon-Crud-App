@@ -20,6 +20,7 @@ table.addEventListener('click', event => {
 function sortTable(name, isNumber) {
 	let th = table.getElementsByTagName("tr")[0];
 	let index = [...th.children].findIndex(e => e.innerText === name);
+	let i, a, b, shouldSwitch;
 
 	switching = true;
 

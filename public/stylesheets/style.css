@@ -22,13 +22,13 @@
 }
 
 :root {
-	--bordercolor: rgb(131, 73, 73);
+	--bordercolor: rgb(131, 73, 73);;
 }
 
 body {
 	padding: 0px;
 	margin: 0px;
-	font: 14px "Anek Devangar", "Lucida Grande", Helvetica, Arial, sans-serif;
+	font: 14px "Anek Devangari", Helvetica, Arial, sans-serif;
 	background-color: #131516;
 	color: white;
 	vertical-align: middle;
@@ -133,10 +133,18 @@ nav a.active {
 	display: flex;
 	justify-content: space-between;
 	align-items: stretch;
+	text-transform: capitalize;
 }
 
 #pokemonshow > div > div > div > div:first-child{
 	font-weight: 700;
+}
+
+#mainimage {
+	position: fixed;
+	top: 40%;
+	left: 50%;
+	transform: translate(-50%, -50%);
 }
 
 #types {
@@ -169,6 +177,14 @@ nav a.active {
 #battle, #shop {
 	display: flex;
 	justify-content: space-between;
+}
+
+#shop {
+	margin-top: 25px;
+}
+
+#shop > div{
+	margin: 0 10px;
 }
 
 #items {
@@ -289,6 +305,14 @@ a:visited {
 	display: flex;
 	justify-content: space-between;
 	align-items: flex-end;
+}
+
+#newpokemon > div > div {
+	text-transform: capitalize;
+}
+
+#img {
+	max-height: 95px;
 }
 
 .battlesprite img{
@@ -767,6 +791,9 @@ a:visited {
 
 	.nomedia {
 		display: none;
+	}
+	#shop {
+		flex-direction: column;
 	}
 }
 

@@ -22,6 +22,7 @@ const statIndices = {
 const pokemonObj = {};
 
 init().then(() => {
+	imageEl.src = '';
 	select.addEventListener('change', updateInfo);
 });
 

@@ -1,35 +1,58 @@
-# passport-boilerplate
+# Pokemon CRUD Application
 
+This web application uses CRUD to create an online platform for catching, training, and battling pokemon.
 
-This is your passport boilerplate.
+### Main Functionality
 
-## Setup 
+The application is set up in a way to connect users to pokemon which are connected to moves.
 
-1. Clone the repo
-2. Rename the folder to your Project
-3. Delete the `.git` file, when you are in the root of the file, you can press `ls` and you should see a `.git` file, then go ahead and run `rm -rf .git`
+![Home Page](images/Homepage.png)
 
+On the homepage, users have limited options unless they have logged in, which they can access via the top right of the screen. While not logged in users have access to an index list of all caught pokemon.
 
-#### Setup your git repo
-0. Setup your `.env` file and add all the things you need! (look at mongoose movies for reference!)
-1. in the project root `git init`
-2. `git add .` to add all the starter code
-3. `git commit -m "setup boilerplate"` 
-4. go to github and create your github and create a repo (Without a readme or liscense you can add that later!)
-5. copy the remote address
-6. In your terminal add the remote `git remote add origin yourGithubRepo'sAddressGoesHere`
-7. `git pull origin main` If a screen pulls up asking you to do something just press `:q` and then `enter` (thats vim btw :) )
-8. `git push origin main`
+![Index](images/All%20Pokemon.png)
 
-#### Setup your login (THE APP WON'T WORK until you do, no VIEWS are setup, or the landing route)
+From the index, user can see basic information of each pokemon, including their name, images, level, and trainer. The table can be sorted by clicking on the headers and can be used to look at each individual pokemon in greater detail.
 
-0. Setup your database connection string
-1. Then Setup Your User Model, 
-2. Follow the steps from the lesson plan to get your Google login credentials for your `.env` file (create the file if you haven't), or you can just copy the ones from earlier if you want to reuse them.
-3. Setup the Code in your config passport 
-4. Setup your callback routes in your `routes/index`
-5. Setup a view and test your login!
+### Logged on Functionality
 
-#### Make a commit 
+The show page gives more information about a pokemon's stat, and if the pokemon is owned by you, shows options for battling other pokemon, and making the pokemon your current, main pokemon, which allows access to the shop and renders another option for battling the currently viewed pokemon with your current pokemon. Additionally, if the pokemon is high enough level, it can learn moves (which can be deleted for free) and even evolve!
 
-```git commit -m "setup up oauth and User Model"```
+![Show](images/ShowPage.png)
+
+Before making a pokemon your current pokemon, however, a user has to catch one. This can be achieved by clicking on the option to catch a pokemon in the nav bar. Afterwards, simply select the pokemon from the drop down and nickname it. The pokemon's stats and some other options will be randomly generated so no two pokemon are exactly alike!
+
+![New](images/NewPokemon.png)
+
+The biggest part of the app is battling, which can be done through the battling index to either battle existing pokemon or in a randomly generated below. Be careful though, each pokemon must have enough health, energy, and food to battle. Energy regenerates over time, but health and food must be purchased from the shop!
+
+![Battleindex](images/Battle.png)
+
+### Battle
+
+Users can level up their pokemon and earn money through battling! Battling works like other pokemon games where each pokemon takes turn choosing moves until the other pokemon reaches 0 health. 
+
+![Battle](images/BattleGame.png)
+
+### Shop
+
+To replenish health and feed the current pokemon, users can access the shop by clicking on the coin on the top left of the screen. This is only available if the user has selected a current pokemon. Addditionally, the user can teach their pokemon more advanced moves bys spending some cash.
+
+![Shop](images/Shop.png)
+
+### Technology
+
+Access the deployment at https://tasty-pink-elk.cyclic.app
+
+Technologies used:
+
+- Javascript
+- Express
+- MongoDb
+- Mongoose
+- Cyclic
+- Trello
+
+### Planning and Next Steps
+
+See on the trello board at https://trello.com/b/AKzuwh5B/sei-project-2-planning

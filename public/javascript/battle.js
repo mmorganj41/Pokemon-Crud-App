@@ -306,8 +306,6 @@ function getPokemonElements(element, id) {
 
 // event listeners
 
-battleController.addEventListener('click', messageProgression);
-
 // Callback Functions
 
 async function messageProgression(event){ 
@@ -875,15 +873,14 @@ function performMove(attacker, defender) {
 		healthDegeneration(attacker, -move.meta.healing)
 		prepareMessage(`${attacker.elements.nameEl.innerText} took some damage from recoil.`);
 	}
-
 	if (move.bool.bAttackerStat) {
-		if (Math.random()*100 < move.effectChance) {
+		if (Math.random()*100 < (move.effectChance || 100)) {
 			move.statchange.forEach(s => {
 				statBoost(attacker, s);
 			})
 		}
 	} else if (move.bool.bDefenderStat){
-		if (Math.random()*100 < move.effectChance) {
+		if (Math.random()*100 < (move.effectChance || 100)) {
 			move.statchange.forEach(s => {
 				statBoost(defender, s);
 			})
@@ -1351,9 +1348,10 @@ function pokemonLevel(experience) {
 
 init();
 
-async function init() {
-		await getPokemonInfo(playerPokemon, playerId).then(await getPokemonInfo(opponentPokemon, opponentId).then(async () => {
-			
+function init() {
+		getPokemonInfo(playerPokemon, playerId).then(getPokemonInfo(opponentPokemon, opponentId).then(async () => {
+		battleController.addEventListener('click', messageProgression);
+
 		moveParser(struggle);
 		moveParser(confusedAttack);
 	
@@ -1375,12 +1373,12 @@ async function init() {
 			p.defending = false;
 			p.fainted = false;
 		})
-		renderHealth();
-		playerPokemon.hp[0] = (playerPokemon.playerHp) ? Math.round(playerPokemon.playerHp * playerPokemon.hp[1]/100) : 1;
-	
-		render();
-	
-		deletePokemon(opponentPokemon)
+		deletePokemon(opponentPokemon).then(() => {
+			renderHealth();
+			playerPokemon.hp[0] = (playerPokemon.playerHp) ? Math.round(playerPokemon.playerHp * playerPokemon.hp[1]/100) : 1;
+		
+			render();
+		})		
 	}));
 
 
@@ -1388,7 +1386,7 @@ async function init() {
 		if (pokemon.user === null) {
 			await axios({
 				method: 'delete',
-				url: `${url}api/pokemon/${pokemon.id}`,
+				url: `${url}api/pokemon/${opponentId}`,
 			})
 		}
 	}
