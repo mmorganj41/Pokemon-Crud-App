@@ -20,6 +20,7 @@
 		<a href="/pokemon" <% if (pathurl === "/pokemon") {%>class="active"<% } %>>All Pokemon</a>
 		<% if (user) { %>
 			<a href="/pokemon/new" <% if (pathurl === "/pokemon/new") {%>class="active"<% } %> >Catch a Pokemon</a>
+			<a href="/pokemon/user" <% if (pathurl === "/pokemon/user") {%>class="active"<% } %> >My Pokemon</a>
 			<a href="/logout">Log Out</a>
 		<% } else { %>
 			<a href="/auth/google" class="login"><img src="https://i.imgur.com/FHjYyi0.png">&nbsp;Login</a>

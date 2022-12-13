@@ -48,6 +48,21 @@ async function index(req, res, next) {
 	}
 }
 
+async function user(req, res, next) {
+	try {
+		const pokemon = await Pokemon.find({user: req.user?._id})
+
+		pokemon.forEach((poke,i) => {
+			pokemon[i].level = dataFunctions.pokemonLevel(poke.experience);
+		})
+
+		res.render('pokemon/index', {title: 'User Pokemon', pokemon});
+	} catch(err) {
+		console.log(err)
+		res.send('Error loading index check terminal')
+	}
+}
+
 function newPokemon(req, res, next) {
 	res.render('pokemon/new', {title: 'Catch a Pokemon', pokemon: availablePokemon});
 }
@@ -290,6 +305,7 @@ async function evolve(req, res, next) {
 
 module.exports = {
 	index,
+	user,
 	new: newPokemon,
 	show,
 	create,
