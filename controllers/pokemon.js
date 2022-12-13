@@ -6,8 +6,6 @@ const User = require('../models/user');
 const pokeAPIURL = "https://pokeapi.co/api/v2/";
 const availablePokemon = [];
 
-const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
-
 findAvailablePokemon();
 
 async function findAvailablePokemon() {
@@ -149,7 +147,7 @@ async function create(req, res, next) {
 		pokemon.energy = new Date(energyDate);
 		pokemon.hunger = currentDate;
 
-		stats.forEach(stat => {
+		dataFunctions.stats.forEach(stat => {
 			let statArray = {
 				base: pokemonQuery.data.stats.find(e => e.stat.name === stat.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)).base_stat,
 				variation: dataFunctions.statGen(stat, pokemon.nature),
@@ -257,7 +255,7 @@ async function evolve(req, res, next) {
 			})
 	
 			pokemon.name = evolution.data.name;
-			stats.forEach(stat => {
+			dataFunctions.stats.forEach(stat => {
 				pokemon[stat].base = evolution.data.stats.find(e => e.stat.name === stat.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)).base_stat;
 			});
 			pokemon.images = dataFunctions.imageGen(pokemon.shiny, evolution.data);
@@ -290,10 +288,37 @@ async function shop(req, res, next) {
 		if (!req.user?.currentPokemon) return res.redirect('/');
 
 		const pokemon = await Pokemon.findById(req.user.currentPokemon);
-		const moves = await Move.find({pokemon: pokemon._id});
-		pokemon.moves = moves;
 
 		pokemon.level = dataFunctions.pokemonLevel(pokemon.experience);
+
+		const pokemonQuery = await axios({
+			method: 'get',
+			url: `${pokeAPIURL}pokemon/${pokemon.name}`,
+	  		headers: {'accept-encoding': 'json'},
+		});
+
+		const moves = await Move.find({pokemon: pokemon._id});
+		pokemon.moves = moves;
+		const moveNames = moves.map(move => move.name);
+
+		const moveOptions = pokemonQuery.data.moves.reduce((filtered, moveData) => {
+			const index = moveData.version_group_details.findIndex(details => {
+				return details.version_group.name === "emerald";
+			})
+
+			if (index >= 0) {
+				const learnMethod = moveData.version_group_details[index].move_learn_method.name;
+				const levelLearned = moveData.version_group_details[index].level_learned_at;
+				const moveName = moveData.move.name;
+		
+				if (!(moveNames.includes(moveName)) && levelLearned <= pokemon.level && !['egg', 'level-up'].includes(learnMethod)) {
+					filtered.push(moveData.move);
+				}
+			}
+			return filtered;
+		}, [])
+
+		pokemon.moveOptions = moveOptions;
 
 	 	res.render('pokemon/shop', {title: 'Shop', pokemon})
 	} catch(err) {

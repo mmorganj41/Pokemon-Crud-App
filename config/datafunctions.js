@@ -63,6 +63,7 @@ function imageGen(bool, query){
 		return [query.sprites.front_default, query.sprites.back_default];
 	}
 }
+const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
 
 module.exports = {
 	pokemonLevel,
@@ -72,4 +73,5 @@ module.exports = {
 	evolutionFinder,
 	shinyGen,
 	natureGen,
+	stats,
 }

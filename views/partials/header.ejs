@@ -11,7 +11,7 @@
 	<nav>		
 		<% if (user?.pokemonImage && user?.currentPokemon) { %>
 			<a href="/pokemon/<%= user?.currentPokemon?.toString()%> "><img src="<%= user.pokemonImage %>" alt="Pokemon"></a>
-			<a href="/pokemon/shop">🛒</a>
+			<a href="/shop">🛒</a>
 		<% } else { %>
 			<img src="/images/favicon.ico">
 		<% } %>

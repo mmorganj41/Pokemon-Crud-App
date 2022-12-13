@@ -173,15 +173,26 @@ nav a.active {
 
 #items {
 	display: flex;
-	justify-content: space-between;
+	justify-content: flex-start;
 	flex-direction: column;
 	align-items: center;
+	height: 175px;
 }
 
 #items > div {
 	display: grid;
 	grid-template-columns: repeat(3, auto);
 	gap: 10px;
+}
+
+#items > div > div {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+#items > div > div > * {
+	padding: 5px 2px;
 }
 
 #opponents, #items {
@@ -609,6 +620,11 @@ a:visited {
 .ownpoke {
 	background-color: aquamarine;
 	border-radius: 10px;
+}
+
+#items form {
+	display: flex;
+	flex-direction: column;
 }
 
 @keyframes battleidle {

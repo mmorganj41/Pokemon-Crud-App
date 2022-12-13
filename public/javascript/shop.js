@@ -3,6 +3,10 @@ const energy = document.getElementById('energy');
 const hunger = document.getElementById('hunger');
 const bars = [health, energy, hunger];
 
+function confirmSubmit() {
+	return confirm('Confirm Purchase');
+}
+
 renderBars();
 
 function renderBars() {
