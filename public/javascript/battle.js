@@ -1,4 +1,6 @@
 // Constants
+const url = window.location.href.match(/.*(?=pokemon)/)[0];
+
 const playerId = window.location.pathname.match(/(?<=pokemon\/)\w*(?=\/battle)/i)[0];
 const opponentId = document.getElementById('oppid').innerHTML;
 
@@ -409,7 +411,7 @@ async function messageProgression(event){
 				break;
 			}
 			case "redirect": {
-				window.location.assign(`http://localhost:3000/pokemon/${playerId}/battle`);
+				window.location.assign(`${url}pokemon/${playerId}/battle`);
 				break;
 			}
 		}
@@ -444,7 +446,7 @@ async function updateWinnings(experience) {
 		gainedExperience = true;
 		const res = await axios({
 			method: 'put',
-			url: `http://localhost:3000/pokemon/${playerId}`,
+			url: `${url}pokemon/${playerId}`,
 			data,
 		});
 
@@ -454,7 +456,7 @@ async function updateWinnings(experience) {
 
 		const res2 = await axios({
 			method: 'put',
-			url: `http://localhost:3000/user/money`,
+			url: `${url}user/money`,
 			data: userData,
 		});
 		
@@ -1266,12 +1268,12 @@ async function getPokemonInfo(object, id) {
 	try {
 		const pokemon = await axios({
 			method: 'get',
-			url: `http://localhost:3000/api/pokemon/${id}`,
+			url: `${url}api/pokemon/${id}`,
 		})
 
 		const moves = await axios({
 			method: 'get',
-			url: `http://localhost:3000/api/pokemon/${id}/moves`,
+			url: `${url}api/pokemon/${id}/moves`,
 		})
 
 		object.name = pokemon.data.name;
@@ -1386,7 +1388,7 @@ async function init() {
 		if (pokemon.user === null) {
 			await axios({
 				method: 'delete',
-				url: `http://localhost:3000/api/pokemon/${pokemon.id}`,
+				url: `${url}api/pokemon/${pokemon.id}`,
 			})
 		}
 	}
