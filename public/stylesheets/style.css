@@ -262,6 +262,35 @@ a:visited {
 	color: red;
 }
 
+#newpokemon {
+	display: flex;
+	justify-content: space-evenly;
+	align-items: stretch;
+	border: black 2px solid;
+	padding: 10px;
+	background-color:rgb(58, 58, 58);
+	border-radius: 10px;
+	margin-bottom: 10px;
+}
+
+#newpokemon > div {
+	background-color: white;
+	border-radius: 10px;
+	color: black;
+	padding: 5px;
+	margin: 0 5px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+	min-width: 100px;
+}
+
+#newpokemon > div > div {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-end;
+}
+
 .battlesprite img{
 	transform: scale(1.5);
 }
@@ -497,13 +526,25 @@ a:visited {
 	padding: 2px;
 }
 
-.canBattle {
-	color: red;
-}
-
 #pokemonshow .bar {
 	height: 10px;
 	width: 0;
+}
+
+#newpokemon .health-bar {
+	width: 100px;
+	height: 15px;
+	padding: 2px;
+}
+
+#newpokemon .bar {
+	background: rgb(41, 66, 178);
+	height: 10px;
+	width: 0;
+}
+
+.canBattle {
+	color: red;
 }
 
 .lowhealth {

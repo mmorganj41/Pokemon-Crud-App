@@ -28,8 +28,6 @@ async function findAvailablePokemon() {
 				availablePokemon[number] = p;
 			}
 		})
-
-		console.log(availablePokemon);
 	} catch(err) {
 		console.log(err);
 	}

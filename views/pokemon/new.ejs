@@ -1,6 +1,33 @@
 <%- include('../partials/header') %>
 
 	<h1>Catch a Pokemon</h1>
+
+	<div id="newpokemon">
+		<div id="sprite">
+			<div><img id="img"src="test" alt=""></div>
+		</div>
+		<div id="newinfo">
+			<div>
+				<div>Name:&nbsp;</div>
+				<div id="name"></div>
+			</div>
+			<div>
+				<div>Type:&nbsp;</div>
+				<div id="type"></div>
+			</div>
+		</div>
+		<div id="newstats">
+			<% const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense']%>
+			<% stats.forEach(stat => { %>
+				<div>
+					<div><%= stat.replace(/pecial|ee|tac|ense/ig, '').toUpperCase() %>:&nbsp;</div>
+					<div class="health-bar">
+						<div id="<%= stat %>" class="bar"></div>
+					</div>
+				</div>
+			<% }) %>
+		</div>
+	</div>
 	<form action="/pokemon" method="post">
 		<label>Name</label>
 		<select name="url">
@@ -12,5 +39,6 @@
 		<input type="text" name="nickname">
 		<input type="submit" value="Catch!">
 	</form>
-
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script src="/javascript/newrender.js"></script>
 <%- include('../partials/footer') %>
