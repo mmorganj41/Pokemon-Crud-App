@@ -171,6 +171,19 @@ nav a.active {
 	justify-content: space-between;
 }
 
+#items {
+	display: flex;
+	justify-content: space-between;
+	flex-direction: column;
+	align-items: center;
+}
+
+#items > div {
+	display: grid;
+	grid-template-columns: repeat(3, auto);
+	gap: 10px;
+}
+
 #opponents, #items {
 	background-color:rgb(58, 58, 58);
 	border: black solid 2px;
@@ -456,6 +469,8 @@ a:visited {
 	border-radius: 5px;
 	position: relative;
 }
+
+
 .bar {
 	background: rgb(43, 178, 41);
 	width: 100%;
@@ -463,6 +478,17 @@ a:visited {
 	position: relative;
 	
 	transition: width .5s linear;
+}
+
+#pokemonshow .health-bar {
+	width: 100px;
+	height: 15px;
+	padding: 2px;
+}
+
+#pokemonshow .bar {
+	height: 10px;
+	width: 0;
 }
 
 .lowhealth {

@@ -1,1 +1,1 @@
-mongosh "mongodb+srv://cluster0.anbqpqf.mongodb.net/local" --apiVersion 1
+mongosh "mongodb+srv://cluster0.anbqpqf.mongodb.net/test" --apiVersion 1

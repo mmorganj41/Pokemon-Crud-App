@@ -1,6 +1,7 @@
 <%- include('../partials/header') %>
 <div id="shop">
 	<div id="pokemonshow">
+		<% const date = new Date(), day = 1000 * 60 * 60 * 24 %> 
 		<div id="sprite"><h3><%= pokemon.name[0].toUpperCase() + pokemon.name.substring(1, pokemon.name.length) %></h3>
 			<div>
 				<img src="<%= pokemon.images[0] %>" alt="<%= pokemon.images[0] %>">
@@ -10,9 +11,24 @@
 			<div>
 				<div><div>Nickname:&nbsp;</div><div><%= pokemon.nickname %></div></div>
 				<div><div>Level:&nbsp;</div><div><%= pokemon.level %> (<%= pokemon.experience %>)</div></div>
-				<div><div>CurrentHP:&nbsp;</div><div><%= pokemon.currentHp %></div></div>
-				<div><div>Energy:&nbsp;</div><div><%= pokemon.energy %></div></div>
-				<div><div>Hunger:&nbsp;</div><div><%= pokemon.hunger %></div></div>
+				<div><div>HP:&nbsp;</div><div>
+						<div class="health-bar">
+							<div id="health" class="bar" data-value="<%= pokemon.currentHp %>"></div>
+						</div>
+					</div>
+				</div>
+				<div><div>Energy:&nbsp;</div><div>
+						<div class="health-bar">
+							<div id="energy"class="bar" data-value="<%= Math.min(100, (date - pokemon.energy)/day*100)%>"></div>
+						</div>
+					</div>
+				</div>
+				<div><div>Food:&nbsp;</div><div>
+					<div class="health-bar">
+						<div id="hunger" class="bar" data-value="<%= Math.max(0, 100-(date - pokemon.hunger)/day/3) %>"></div>
+					</div>
+				</div>
+			</div>
 			</div>
 		</div>
 		<div><h3>Stats:</h3>
@@ -41,7 +57,11 @@
 		</div>
 	</div>
 	<div id="items">
-		ITEMS
+		<h1>🏪</h1>
+		<div>
+			
+		</div>
 	</div>
 </div>
+<script src="/javascript/shop.js"></script>
 <%- include('../partials/footer') %>

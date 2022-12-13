@@ -142,8 +142,12 @@ async function create(req, res, next) {
 
 		pokemon.images = dataFunctions.imageGen(pokemon.shiny, pokemonQuery.data);
 		pokemon.currentHp = 100;
-		pokemon.energy = new Date();
-		pokemon.hunger = new Date();
+		
+		let currentDate = new Date();
+		let energyDate = currentDate - 1000 * 60 * 60 * 24;
+
+		pokemon.energy = new Date(energyDate);
+		pokemon.hunger = currentDate;
 
 		stats.forEach(stat => {
 			let statArray = {
@@ -288,6 +292,8 @@ async function shop(req, res, next) {
 		const pokemon = await Pokemon.findById(req.user.currentPokemon);
 		const moves = await Move.find({pokemon: pokemon._id});
 		pokemon.moves = moves;
+
+		pokemon.level = dataFunctions.pokemonLevel(pokemon.experience);
 
 	 	res.render('pokemon/shop', {title: 'Shop', pokemon})
 	} catch(err) {
