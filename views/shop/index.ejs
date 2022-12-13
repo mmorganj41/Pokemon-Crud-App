@@ -61,21 +61,21 @@
 		<div>
 			<div id="healing">
 				<div>Fully Heal (<strong>$10</strong>)</div>
-				<form action="/shop/<%= pokemon._id %>/heal?_method=PUT" onsubmit="return confirmSubmit()" method="post" id="battlebutton">
+				<form action="/shop/heal?_method=PUT" onsubmit="return confirmSubmit()" method="post" id="battlebutton">
 					<input type="submit" value="💊">
 				</form>
 			</div>
 			
 			<div id="food">
 				<div>Food (<strong>$20</strong>)</div>
-				<form action="/shop/<%= pokemon._id %>/feed?_method=PUT" onsubmit="return confirmSubmit()" method="post" id="battlebutton">
+				<form action="/shop/feed?_method=PUT" onsubmit="return confirmSubmit()" method="post" id="battlebutton">
 					<input type="submit" value="🍙">
 				</form>
 			</div>
 			
 			<div id="tutor">
 				<div>Moves (<strong>$1000</strong>)</div>
-				<form action="/shop/<% pokemon._id %>/moves" onsubmit="return confirmSubmit()" method="post" id="battlebutton">
+				<form action="/shop/moves" onsubmit="return confirmSubmit()" method="post" id="battlebutton">
 					<select name="url">
 						<% pokemon.moveOptions.forEach(m => { %>
 							<option value="<%= m.url %>"><%= m.name %> </option>

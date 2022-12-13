@@ -142,7 +142,7 @@ async function create(req, res, next) {
 		pokemon.currentHp = 100;
 		
 		let currentDate = new Date();
-		let energyDate = currentDate - 1000 * 60 * 60 * 24;
+		let energyDate = currentDate - 1000 * 60 * 60 * 6;
 
 		pokemon.energy = new Date(energyDate);
 		pokemon.hunger = currentDate;
@@ -283,50 +283,6 @@ async function evolve(req, res, next) {
 	}
 }
 
-async function shop(req, res, next) {
-	try {
-		if (!req.user?.currentPokemon) return res.redirect('/');
-
-		const pokemon = await Pokemon.findById(req.user.currentPokemon);
-
-		pokemon.level = dataFunctions.pokemonLevel(pokemon.experience);
-
-		const pokemonQuery = await axios({
-			method: 'get',
-			url: `${pokeAPIURL}pokemon/${pokemon.name}`,
-	  		headers: {'accept-encoding': 'json'},
-		});
-
-		const moves = await Move.find({pokemon: pokemon._id});
-		pokemon.moves = moves;
-		const moveNames = moves.map(move => move.name);
-
-		const moveOptions = pokemonQuery.data.moves.reduce((filtered, moveData) => {
-			const index = moveData.version_group_details.findIndex(details => {
-				return details.version_group.name === "emerald";
-			})
-
-			if (index >= 0) {
-				const learnMethod = moveData.version_group_details[index].move_learn_method.name;
-				const levelLearned = moveData.version_group_details[index].level_learned_at;
-				const moveName = moveData.move.name;
-		
-				if (!(moveNames.includes(moveName)) && levelLearned <= pokemon.level && !['egg', 'level-up'].includes(learnMethod)) {
-					filtered.push(moveData.move);
-				}
-			}
-			return filtered;
-		}, [])
-
-		pokemon.moveOptions = moveOptions;
-
-	 	res.render('pokemon/shop', {title: 'Shop', pokemon})
-	} catch(err) {
-		console.log(err);
-		res.send('Error displaying shop');
-	}
-}
-
 module.exports = {
 	index,
 	new: newPokemon,
@@ -335,5 +291,4 @@ module.exports = {
 	delete: deletePokemon,
 	update,
 	evolve,
-	shop,
 }
