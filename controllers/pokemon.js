@@ -143,9 +143,9 @@ async function create(req, res, next) {
 		
 		let currentDate = new Date();
 		let energyDate = currentDate - 1000 * 60 * 60 * 6;
-
+		let hungerDate = currentDate - 1000 * 60 * 60 * 10;
 		pokemon.energy = new Date(energyDate);
-		pokemon.hunger = currentDate;
+		pokemon.hunger = new Date(hungerDate);
 
 		dataFunctions.stats.forEach(stat => {
 			let statArray = {
@@ -215,6 +215,12 @@ async function update(req,res,next){
 
 		pokemon.experience = req.body.experience;
 		pokemon.currentHp = req.body.currentHp;
+
+		let currentDate = new Date();
+		let energyVal = pokemon.energy + req.body.energy;
+		let newEnergy = new Date(energyVal);
+		
+		pokemon.energy = (newEnergy > currentDate) ? currentDate : newEnergy;
 
 		await pokemon.save();
 

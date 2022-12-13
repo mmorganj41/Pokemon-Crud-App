@@ -1,16 +1,9 @@
 <%- include('../partials/header') %>
 <section id="showcontrollers">
 <% if (user?._id?.equals(pokemon.user)) { %>
-	<% const canBattle = pokemon.currentHp > 0 %> 
-	<% if (canBattle) { %>
-		<form action="/pokemon/<%= pokemon._id%>/battle" id="battlebutton">
-			<input type="submit" value="Battle With This Pokemon.">
-		</form>
-	<% } else { %>
-		<form action="" id="battlebutton">
-			<input type="submit" value="❌">
-		</form>
-	<% } %> 
+	<form action="/pokemon/<%= pokemon._id%>/battle" id="battlebutton">
+		<input type="submit" value="Battle With This Pokemon.">
+	</form>
 	<% if (String(user.currentPokemon) != pokemon._id) { %>
 		<form action="/user/currentpokemon/<%= pokemon._id%>?_method=PUT" method="post" id="selectpokemon">
 			<input type="submit" value="Make Current Pokemon">
@@ -18,7 +11,8 @@
 	<% } %>
 <% } %>
 <% if (String(user?.currentPokemon) != pokemon._id && user?.currentPokemon) { %>
-	<% const canBattle = currentPokemon.currentHp > 0 %> 
+	<% const date = new Date(), day = 1000 * 60 * 60 * 24 %> 
+	<% const canBattle = (currentPokemon.currentHp > 0 && (date - currentPokemon.energy)/day*4*100 > 5) && (100-(date - currentPokemon.hunger)/day/3*100 > 5)%> 
 	<% if (canBattle) { %>
 		<td><form action="/pokemon/<%= user.currentPokemon %>/battle/<%= pokemon._id %>">
 			<input type="submit" value="⚔️" />

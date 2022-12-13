@@ -497,6 +497,10 @@ a:visited {
 	padding: 2px;
 }
 
+.canBattle {
+	color: red;
+}
+
 #pokemonshow .bar {
 	height: 10px;
 	width: 0;

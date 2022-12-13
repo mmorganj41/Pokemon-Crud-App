@@ -100,7 +100,7 @@ async function feed(req, res, next) {
 
 		let currentDate = new Date();
 		let minHunger = currentDate - 1000 * 60 * 60 * 24 * 3
-		let hungerVal = Math.max(pokemon.hunger, minHunger) + 1000 * 60 * 60 * 24;
+		let hungerVal = Math.max(pokemon.hunger || 0, minHunger) + 1000 * 60 * 60 * 24;
 		let newHunger = new Date(hungerVal);
 		
 		pokemon.hunger = (newHunger > currentDate) ? currentDate : newHunger;

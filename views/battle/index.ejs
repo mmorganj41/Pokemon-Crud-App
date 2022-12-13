@@ -1,10 +1,22 @@
 <%- include('../partials/header') %>
-<% const canBattle = pokemon.currentHp > 0 %> 
+	<% const date = new Date(), day = 1000 * 60 * 60 * 24 %> 
+	<% const hpBool =  pokemon.currentHp > 0, energyBool = (date - pokemon.energy)/day*4*100 > 5, hungerBool = (100-(date - pokemon.hunger)/day/3*100 > 5) %> 
+	<% const canBattle = (hpBool && energyBool && hungerBool)%> 
 	<h1>Battle an Opponent</h1>
 	<% if (canBattle) { %> 
 	<form action="/pokemon/<%= pokemon._id %>/battle/random">
 		<input type="submit" value="Battle Random" />
 	</form>
+	<% } else { %>
+		<% if (!hpBool) { %>
+			<p class="canBattle">Health Too Low.</p>
+		<% } %>
+		<% if (!energyBool) { %>
+			<p class="canBattle">Energy Too Low.</p>
+		<% } %>
+		<% if (!hungerBool) { %>
+			<p class="canBattle">Food Too Low.</p>
+		<% } %>
 	<% } %> 
 	<div id="battle">
 		<%- include('../partials/pokeshow') %>
@@ -47,5 +59,6 @@
 	</div>
 
 	<script src="/javascript/filter.js"></script>
+	<script src="/javascript/healthbar.js"></script>
 
 <%- include('../partials/footer') %>

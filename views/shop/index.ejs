@@ -19,13 +19,13 @@
 				</div>
 				<div><div>Energy:&nbsp;</div><div>
 						<div class="health-bar">
-							<div id="energy"class="bar" data-value="<%= Math.min(100, (date - pokemon.energy)/day*100)%>"></div>
+							<div id="energy"class="bar" data-value="<%= Math.min(100, (date - pokemon.energy)/day*4*100)%>"></div>
 						</div>
 					</div>
 				</div>
 				<div><div>Food:&nbsp;</div><div>
 					<div class="health-bar">
-						<div id="hunger" class="bar" data-value="<%= Math.max(0, 100-(date - pokemon.hunger)/day/3) %>"></div>
+						<div id="hunger" class="bar" data-value="<%= Math.max(0, 100-(date - pokemon.hunger)/day/3*100) %>"></div>
 					</div>
 				</div>
 			</div>
@@ -88,4 +88,5 @@
 	</div>
 </div>
 <script src="/javascript/shop.js"></script>
+<script src="/javascript/healthbar.js"></script>
 <%- include('../partials/footer') %>

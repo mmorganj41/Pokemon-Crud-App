@@ -425,11 +425,13 @@ async function updateWinnings(experience) {
 		playerPokemon.experience += experience;
 		const percentHealth = Math.round(playerPokemon.hp[0]/playerPokemon.hp[1]*10000)/100;
 		if (experience) prepareMessage(`Gained ${experience} experience.`);
+		const energyLoss = (1000 * 60 * 60 * 6)/40;
 
 		const data = {};
 		data.experience = playerPokemon.experience;
 		data.moves = [];
 		data.currentHp = percentHealth;
+		data.energy = (gameState === 'lose') ? energyLoss*2 : energyLoss;
 		playerPokemon.moves.forEach(move => {
 			move.experience += Math.floor(experience/10);
 			data.moves.push({

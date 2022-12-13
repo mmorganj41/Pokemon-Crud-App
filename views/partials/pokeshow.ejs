@@ -16,8 +16,36 @@
 			<div><div>Type:&nbsp;</div><div id="types"><% pokemon.types.forEach(type => { %>
 				<div><%= type %></div>
 			<% }) %></div></div>
+			<% if (title === "Pokemon Battle Selection") { %>
+				<% const date = new Date(), day = 1000 * 60 * 60 * 24 %> 
+			<div>
+				<div>HP:&nbsp;</div>
+				<div>
+					<div class="health-bar">
+						<div id="health" class="bar" data-value="<%= pokemon.currentHp %>"></div>
+					</div>
+				</div>
+			</div>
+			<div>
+				<div>Energy:&nbsp;</div>
+				<div>
+					<div class="health-bar">
+						<div id="energy"class="bar" data-value="<%= Math.min(100, (date - pokemon.energy)/day*4*100)%>"></div>
+					</div>
+				</div>
+			</div>
+			<div>
+				<div>Food:&nbsp;</div>
+				<div>
+					<div class="health-bar">
+						<div id="hunger" class="bar" data-value="<%= Math.max(0, 100-(date - pokemon.hunger)/day/3*100) %>"></div>
+					</div>
+				</div>
+			</div>
+			<% } else { %>
 			<div><div>Nature:&nbsp;</div><div><%= pokemon.nature %></div></div>
 			<div><div>Trainer:&nbsp;</div><div><%= pokemon.trainer %></div></div>
+			<% } %> 
 		</div>
 	</div>
 	<div><h3>Stats:</h3>
