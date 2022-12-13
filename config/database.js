@@ -8,7 +8,7 @@ module.exports = {
 
 async function connectDB() {
   try {
-	mongoose.set('strictQuery', true);
+	mongoose.set('strictQuery', false);
 
     const conn = await mongoose.connect(process.env.DATABASE_URL, {
       useNewUrlParser: true,

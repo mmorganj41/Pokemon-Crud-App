@@ -1322,13 +1322,6 @@ async function getPokemonInfo(object, id) {
 			moveParser(object.moves[index]);
 		})
 
-		if (object.user === null) {
-			await axios({
-				method: 'delete',
-				url: `http://localhost:3000/api/pokemon/${id}`,
-			})
-		}
-
 	} catch(err) {
 		console.log(err);
 	}
@@ -1357,34 +1350,46 @@ function pokemonLevel(experience) {
 init();
 
 async function init() {
-	await getPokemonInfo(playerPokemon, playerId);
-	await getPokemonInfo(opponentPokemon, opponentId);
+		await getPokemonInfo(playerPokemon, playerId).then(await getPokemonInfo(opponentPokemon, opponentId).then(async () => {
+			
+		moveParser(struggle);
+		moveParser(confusedAttack);
+	
+		gainedExperience = false;
+		gameState = 'start';
+		messageArray = [];
+		prepareMessage(`${opponentPokemon.elements.nameEl.innerText} appeared.`);
+		weather = {
+			state: "normal", 
+			duration: Infinity
+		};
+		terrain = {
+			state: "normal", 
+			duration: Infinity
+		};
+	
+		[pokemonArray].forEach(p => {
+			p.attacking = false;
+			p.defending = false;
+			p.fainted = false;
+		})
+		renderHealth();
+		playerPokemon.hp[0] = (playerPokemon.playerHp) ? Math.round(playerPokemon.playerHp * playerPokemon.hp[1]/100) : 1;
+	
+		render();
+	
+		deletePokemon(opponentPokemon)
+	}));
 
-	moveParser(struggle);
-	moveParser(confusedAttack);
 
-	gainedExperience = false;
-	gameState = 'start';
-	messageArray = [];
-	prepareMessage(`${opponentPokemon.elements.nameEl.innerText} appeared.`);
-	weather = {
-		state: "normal", 
-		duration: Infinity
-	};
-	terrain = {
-		state: "normal", 
-		duration: Infinity
-	};
-
-	[pokemonArray].forEach(p => {
-		p.attacking = false;
-		p.defending = false;
-		p.fainted = false;
-	})
-	renderHealth();
-	playerPokemon.hp[0] = (playerPokemon.playerHp) ? Math.round(playerPokemon.playerHp * playerPokemon.hp[1]/100) : 1;
-
-	render();
+	async function deletePokemon(pokemon) {
+		if (pokemon.user === null) {
+			await axios({
+				method: 'delete',
+				url: `http://localhost:3000/api/pokemon/${pokemon.id}`,
+			})
+		}
+	}
 }
 
 function render() {
