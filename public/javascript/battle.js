@@ -426,7 +426,7 @@ async function updateWinnings(experience) {
 		let percentHealth = Math.round(playerPokemon.hp[0]/playerPokemon.hp[1]*10000)/100;
 		percentHealth = Math.max(0, percentHealth);
 		if (experience) prepareMessage(`Gained ${experience} experience.`);
-		const energyLoss = (1000 * 60 * 60 * 6)/40;
+		const energyLoss = (1000 * 60 * 60 * 6)/20;
 
 		const data = {};
 		data.experience = playerPokemon.experience;
