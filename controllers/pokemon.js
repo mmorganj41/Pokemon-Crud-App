@@ -254,18 +254,20 @@ async function evolve(req, res, next) {
 		const evolutionName = pokemon.evolution.find(e => e.data.min_level <= level).species.name;
 
 		if (evolutionName) {
-			const evolution = await axios(
+			const evolutionP = axios(
 				{
 					method: 'get',
 					url: `${pokeAPIURL}/pokemon/${evolutionName}`,
 					headers: {'accept-encoding': 'json'},
 			});
 	
-			const pokemonSpeciesQuery = await axios({
+			const pokemonSpeciesP = axios({
 				method: 'get',
 				url: `${pokeAPIURL}/pokemon-species/${evolutionName}`,
 				  headers: {'accept-encoding': 'json'},
 			});
+
+			const [evolution, pokemonSpeciesQuery] = await Promise.all([evolutionP, pokemonSpeciesP]);
 	
 			const evolutionChain = await axios({
 				method: 'get',
