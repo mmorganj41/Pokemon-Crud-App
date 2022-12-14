@@ -193,7 +193,7 @@ async function deletePokemon(req, res, next) {
 		const pokemon = await Pokemon.findById(req.params.id); 
 		
 		if (req.user?._id == String(pokemon.user) || !pokemon.user) {
-			await Move.remove({pokemon:req.params.id});
+			await Move.deleteMany({pokemon:req.params.id});
 
 			if (req.user.currentPokemon?.toString() == pokemon._id) {
 				const user = await User.findById(req.user._id);
@@ -202,7 +202,7 @@ async function deletePokemon(req, res, next) {
 				await user.save();
 			}
 					
-			pokemon.remove();
+			pokemon.deleteOne();
 	
 		} 
 
@@ -258,7 +258,7 @@ async function evolve(req, res, next) {
 		if (req.user?._id != String(pokemon.user)) return res.redirect(`/pokemon`);
 
 		const level = dataFunctions.pokemonLevel(pokemon.experience);
-		const evolutionName = pokemon.evolution.find(e => e.data.min_level < level).species.name;
+		const evolutionName = pokemon.evolution.find(e => e.data.min_level <= level).species.name;
 
 		if (evolutionName) {
 			const evolution = await axios(
@@ -297,6 +297,12 @@ async function evolve(req, res, next) {
 			})
 
 			await pokemon.save();
+
+			if (pokemon._id.equals(req.user.currentPokemon)) {
+				const user = await User.findById(req.user._id);
+				user.pokemonImage = pokemon.images[0];
+				user.save();
+			}
 
 			res.redirect(`/pokemon/${req.params.id}`);
 		} else {

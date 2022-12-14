@@ -2,7 +2,7 @@
 	<div id="sprite"><h3><%= pokemon.name[0].toUpperCase() + pokemon.name.substring(1, pokemon.name.length) %></h3>
 		<div>
 			<img src="<%= pokemon.images[0] %>" alt="<%= pokemon.images[0] %>">
-			<% if (pokemon.evolution.length > 0 && pokemon.evolution.some(evolution => pokemon.level > evolution.data.min_level && user?._id?.equals(pokemon.user))) { %>
+			<% if (pokemon.evolution.length > 0 && pokemon.evolution.some(evolution => pokemon.level >= evolution.data.min_level && user?._id?.equals(pokemon.user))) { %>
 				<form action="/pokemon/<%= pokemon._id%>/evolve?_method=PUT" method="post" id="evolve">
 					<input type="submit" value="Evolve!">
 				</form>

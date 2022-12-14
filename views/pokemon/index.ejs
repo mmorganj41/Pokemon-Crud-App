@@ -17,7 +17,7 @@
 			<tr class="clickable "
 		   onclick="window.location='/pokemon/<%= p._id %>'">
 				<td class="nomedia"><%= p.name[0].toUpperCase() + p.name.substring(1, p.name.length) %></td>
-				<td><img src="<%= p.images[0] %> " alt="sprite" <% if (user?._id?.equals(p.user && title === "All Pokemon")) {%> class="ownpoke" <% }%>></td>
+				<td><img src="<%= p.images[0] %> " alt="sprite" <% if (user?._id?.equals(p.user) && title === "All Pokemon") {%> class="ownpoke" <% }%>></td>
 				<td><%= p.nickname %></td>
 				<td><%= p.level %> </td>
 				<% if (title === "All Pokemon") { %>
