@@ -110,9 +110,9 @@ nav a.active {
 }
 
 #showcontrollers input {
-	height: 70px;
-	width: 70px;
-	white-spacE: normal;
+	height: 85px;
+	width: 85px;
+	white-space: normal;
 }
 
 #sprite div {
@@ -510,6 +510,18 @@ a:visited {
     -1px  0   0 #000;
 }
 
+input {
+	background-color: rgb(24, 26, 27);
+	color: rgb(232, 230, 227);
+	padding: 5px;
+	border-radius: 10px;
+	line-height: 22px;
+}
+
+input[type=submit]:hover {
+	background-color: rgb(65, 68, 70);
+}
+
 #back {
 	margin-top: auto;
 	align-self: flex-end;
@@ -702,6 +714,11 @@ a:visited {
 #items form {
 	display: flex;
 	flex-direction: column;
+}
+
+.delete input{
+	padding-top: 2px;
+	padding-bottom: 2px;
 }
 
 @keyframes battleidle {
