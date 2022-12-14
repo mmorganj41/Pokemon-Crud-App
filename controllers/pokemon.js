@@ -230,12 +230,18 @@ async function update(req,res,next){
 		pokemon.currentHp = req.body.currentHp;
 		
 		let currentDate = new Date();
-		let energyVal = Number(pokemon.energy) + req.body.energy;
+		let highestEnergy = Number(currentDate) - 1000 * 60 * 60 * 6;
+		let currentEnergy = Number(pokemon.energy);
+
+		currentEnergy = ((currentEnergy < highestEnergy)) ? highestEnergy : currentEnergy;
+
+		let energyVal = req.body.energy + currentEnergy;
 		let newEnergy = new Date(energyVal);
-		console.log(currentDate, energyVal, newEnergy);
 		
-		pokemon.energy = (newEnergy > currentDate) ? currentDate : newEnergy;
-		console.log(Number(pokemon.energy))
+		let zeroEnergySwitch = newEnergy > currentDate;
+
+		pokemon.energy = (zeroEnergySwitch) ? currentDate : newEnergy;
+
 		await pokemon.save();
 
 		res.send('updated!');
@@ -301,6 +307,13 @@ async function evolve(req, res, next) {
 		console.log(err);
 		res.send('Error evolving pokemon');
 	}
+}
+
+function parseEnergy(energy) {
+	// for debugging
+	const date = new Date(), day = 1000 * 60 * 60 * 24
+	return 100, (date - energy)/day*4*100
+
 }
 
 module.exports = {

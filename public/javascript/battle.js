@@ -428,6 +428,15 @@ async function updateWinnings(experience) {
 		if (experience) prepareMessage(`Gained ${experience} experience.`);
 		const energyLoss = (1000 * 60 * 60 * 6)/20;
 
+		let newLevel = pokemonLevel(playerPokemon.experience);
+
+		if (newLevel !== playerPokemon.level) {
+			playerPokemon.level = newLevel;
+			prepareMessage(`${playerPokemon.elements.nameEl.innerText} reached level ${playerPokemon.level}.`);
+			percentHealth = 100;
+			playerPokemon.hp[0] = playerPokemon.hp[1];
+		}
+
 		const data = {};
 		data.experience = playerPokemon.experience;
 		data.moves = [];
@@ -460,12 +469,7 @@ async function updateWinnings(experience) {
 		
 		console.log(res, res2);
 
-		let newLevel = pokemonLevel(playerPokemon.experience);
-
-		if (newLevel !== playerPokemon.level) {
-			playerPokemon.level = newLevel;
-			prepareMessage(`${playerPokemon.elements.nameEl.innerText} reached level ${playerPokemon.level}.`);
-		}
+		
 
 		prepareMessage(`You earned $${userData.money}.`);
 

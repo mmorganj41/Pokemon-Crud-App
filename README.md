@@ -36,7 +36,7 @@ Users can level up their pokemon and earn money through battling! Battling works
 
 ### Shop
 
-To replenish health and feed the current pokemon, users can access the shop by clicking on the coin on the top left of the screen. This is only available if the user has selected a current pokemon. Addditionally, the user can teach their pokemon more advanced moves bys spending some cash.
+To replenish health and feed the current pokemon, users can access the shop by clicking on the coin on the top left of the screen. This is only available if the user has selected a current pokemon. Additionally, the user can teach their pokemon more advanced moves by spending some cash.
 
 ![Shop](images/Shop.png)
 
