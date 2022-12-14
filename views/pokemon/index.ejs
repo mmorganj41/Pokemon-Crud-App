@@ -14,8 +14,9 @@
 		</tr>
 		<div class="scrollable">
 		<% pokemon.forEach(p => { %>
-			<tr>
-				<td><a href="/pokemon/<%= p._id %>"><%= p.name[0].toUpperCase() + p.name.substring(1, p.name.length) %></a></td>
+			<tr class="clickable "
+		   onclick="window.location='/pokemon/<%= p._id %>'">
+				<td><%= p.name[0].toUpperCase() + p.name.substring(1, p.name.length) %></td>
 				<td><img src="<%= p.images[0] %> " alt="sprite" <% if (user?._id?.equals(p.user && title === "All Pokemon")) {%> class="ownpoke" <% }%>></td>
 				<td><%= p.nickname %></td>
 				<td><%= p.level %> </td>
