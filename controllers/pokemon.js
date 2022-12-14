@@ -32,8 +32,7 @@ async function findAvailablePokemon() {
 				availablePokemon[number] = {name: pQuery.data.name, url: `${pokeAPIURL}pokemon/${pQuery.data.name}`};
 			}
 		});
-
-		console.log(availablePokemon);
+		console.log("Found pokemon!");
 
 	} catch(err) {
 		console.log(err);

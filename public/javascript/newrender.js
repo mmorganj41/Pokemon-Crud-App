@@ -21,32 +21,41 @@ const statIndices = {
 
 const pokemonObj = {};
 
-init().then(() => {
-	initialInfo();
-	select.addEventListener('change', updateInfo);
-});
+init();
 
 async function init() {
+	const promiseArray = [];
+
 	for (let option in pokemonEl) {
 		
 		if (Number(option) >= 0) {
-			const pokemon = await axios({
+			const pokemon = axios({
 				method: 'get',
 				url: pokemonEl[option].value,
 			})	
+
+			promiseArray.push(pokemon);
+		}
+	}
+
+	Promise.all(promiseArray).then(pokemonArray => {
+		pokemonArray.forEach(pokemon => {
 			let newObj = {
 				image: pokemon.data.sprites.front_default,
 				type: [],
 			}
+	
 			for (let stat in statIndices) {
 				newObj[stat] = pokemon.data.stats[statIndices[stat]].base_stat;
 			}
-			pokemon.data.types.forEach(t => newObj.type.push(t.type.name));
 	
-			pokemonObj[pokemonEl[option].text] = newObj;
-			
-		}
-	}
+			pokemon.data.types.forEach(t => newObj.type.push(t.type.name));
+			pokemonObj[pokemon.data.name] = newObj;
+		})
+
+		initialInfo();
+		select.addEventListener('change', updateInfo)
+	})			
 }
 
 function updateInfo(event) {
