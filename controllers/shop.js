@@ -3,7 +3,6 @@ const Move = require('../models/move');
 const dataFunctions = require('../config/datafunctions');
 const axios = require('axios');
 const User = require('../models/user');
-const user = require('../models/user');
 const pokeAPIURL = "https://pokeapi.co/api/v2/";
 
 async function index(req, res, next) {

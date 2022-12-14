@@ -1353,12 +1353,14 @@ function pokemonLevel(experience) {
 init();
 
 function init() {
-		getPokemonInfo(playerPokemon, playerId).then(getPokemonInfo(opponentPokemon, opponentId).then(async () => {
+	const playerP = getPokemonInfo(playerPokemon, playerId);
+	const opponentP = (getPokemonInfo(opponentPokemon, opponentId));
+	Promise.all([playerP, opponentP]).then(() => {
 		battleController.addEventListener('click', messageProgression);
 
 		moveParser(struggle);
 		moveParser(confusedAttack);
-	
+
 		gainedExperience = false;
 		gameState = 'start';
 		messageArray = [];
@@ -1371,19 +1373,20 @@ function init() {
 			state: "normal", 
 			duration: Infinity
 		};
-	
+
 		[pokemonArray].forEach(p => {
 			p.attacking = false;
 			p.defending = false;
 			p.fainted = false;
 		})
-		deletePokemon(opponentPokemon).then(() => {
-			renderHealth();
-			playerPokemon.hp[0] = (playerPokemon.playerHp) ? Math.round(playerPokemon.playerHp * playerPokemon.hp[1]/100) : 1;
-		
-			render();
-		})		
-	}));
+
+		deletePokemon(opponentPokemon)
+
+		renderHealth();
+		playerPokemon.hp[0] = (playerPokemon.playerHp) ? Math.round(playerPokemon.playerHp * playerPokemon.hp[1]/100) : 1;
+
+		render();		
+	});
 
 
 	async function deletePokemon(pokemon) {

@@ -16,18 +16,25 @@ async function findAvailablePokemon() {
 			headers: {'accept-encoding': 'json'},
 		});
 	
-		pokemon.data.results.forEach(async p => {
-			const pQuery = await axios({
+		const availableP = pokemon.data.results.map(p => {
+			return axios({
 				method: 'get',
 				url: `${pokeAPIURL}pokemon-species/${p.name}`,
 				headers: {'accept-encoding': 'json'},
 			})
-	
+		});
+
+		const possiblePokemon = await Promise.all(availableP);
+
+		possiblePokemon.forEach(pQuery => {
 			if (!pQuery.data.evolves_from_species?.name && pQuery.data.egg_groups[0]?.name !== 'no-eggs') {
-				let number = p.url.match(/(?<=species\/)\d*/)[0];
-				availablePokemon[number] = p;
+				let number = pQuery.data.id;
+				availablePokemon[number] = {name: pQuery.data.name, url: `${pokeAPIURL}pokemon/${pQuery.data.name}`};
 			}
-		})
+		});
+
+		console.log(availablePokemon);
+
 	} catch(err) {
 		console.log(err);
 	}
@@ -69,31 +76,27 @@ function newPokemon(req, res, next) {
 
 async function show(req, res, next) {
 	try {
-		const pokemon = await Pokemon.findById(req.params.id);
-
-		let pokemonLevel = dataFunctions.pokemonLevel(pokemon.experience);
-
-		pokemon.level = pokemonLevel;
-
-		const pokemonQuery = await axios({
+		const pokemonPromise = Pokemon.findById(req.params.id);
+		let currentPokePromise;
+		if (req.user?.currentPokemon) {
+			currentPokePromise = Pokemon.findById(req.user.currentPokemon);
+		}
+		const [pokemon, currentPokemon] = await Promise.all([pokemonPromise, currentPokePromise]);
+		
+		const apiPromise = axios({
 			method: 'get',
 			url: `${pokeAPIURL}pokemon/${pokemon.name}`,
 	  		headers: {'accept-encoding': 'json'},
 		});
+		const movePromise = Move.find({pokemon: pokemon._id});
+		const [moves, pokemonQuery] = await Promise.all([movePromise, apiPromise]);
 
-		let currentPokemon;
-		if (req.user?.currentPokemon) {
-			currentPokemon = await Pokemon.findById(req.user.currentPokemon);
-		}
-
-		const moves = await Move.find({pokemon: pokemon._id});
-		
+		let pokemonLevel = dataFunctions.pokemonLevel(pokemon.experience);
+		pokemon.level = pokemonLevel;		
 		pokemon.moves = moves;
 
 		const learningArray = ['egg', 'level-up'];
-
 		const moveOptions = dataFunctions.moveOptionParser(pokemon, pokemonQuery.data.moves, learningArray);
-
 		pokemon.moveOptions = moveOptions;
 		
 		res.render('pokemon/show', {title: 'Pokemon', pokemon, currentPokemon});
@@ -106,17 +109,19 @@ async function show(req, res, next) {
 
 async function create(req, res, next) {
 	try {
-		const pokemonQuery = await axios({
+		const pokemonP = axios({
 			method: 'get',
 			url: req.body.url,
 	  		headers: {'accept-encoding': 'json'},
 		});
 
-		const pokemonSpeciesQuery = await axios({
+		const pokemonSpeciesP = axios({
 			method: 'get',
 			url: req.body.url.replace(/pokemon/, 'pokemon-species'),
 	  		headers: {'accept-encoding': 'json'},
 		});
+
+		const [pokemonQuery, pokemonSpeciesQuery] = await Promise.all([pokemonP, pokemonSpeciesP]);
 
 		const evolutionChain = await axios({
 			method: 'get',
@@ -203,13 +208,17 @@ async function update(req,res,next){
 	try {
 		const pokemon = await Pokemon.findById(req.params.id);
 		
-		req.body.moves.forEach(async moveObj => {
-			const move = await Move.findById(moveObj.id);
+		let movesArray = req.body.moves.map(moveObj => {
+			const moveP = Move.findById(moveObj.id);
 
-			move.experience = moveObj.experience;
+			moveP.experience = moveObj.experience;
 
-			await move.save();
+			return moveP
 		})
+
+		const moves = await Promise.all(movesArray);
+		movesArray = moves.map(move => move.save());
+		await Promise.all(movesArray);
 
 		pokemon.experience = req.body.experience;
 		pokemon.currentHp = req.body.currentHp;
