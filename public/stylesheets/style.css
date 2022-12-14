@@ -510,17 +510,7 @@ a:visited {
     -1px  0   0 #000;
 }
 
-input {
-	background-color: rgb(24, 26, 27);
-	color: rgb(232, 230, 227);
-	padding: 5px;
-	border-radius: 10px;
-	line-height: 22px;
-}
 
-input[type=submit]:hover {
-	background-color: rgb(65, 68, 70);
-}
 
 #back {
 	margin-top: auto;
@@ -719,6 +709,19 @@ input[type=submit]:hover {
 .delete input{
 	padding-top: 2px;
 	padding-bottom: 2px;
+}
+
+input, select {
+	background-color: rgb(24, 26, 27);
+	color: rgb(232, 230, 227);
+	padding: 5px;
+	border-radius: 10px;
+	line-height: 22px;
+}
+
+input[type=submit]:hover {
+	color: rgb(24, 26, 27);
+	background-color: rgb(232, 230, 227);
 }
 
 @keyframes battleidle {
