@@ -87,29 +87,14 @@ async function show(req, res, next) {
 		}
 
 		const moves = await Move.find({pokemon: pokemon._id});
-		const moveNames = moves.map(move => move.name);
+		
 		pokemon.moves = moves;
 
-		const moveOptions = pokemonQuery.data.moves.reduce((filtered, moveData) => {
-			const index = moveData.version_group_details.findIndex(details => {
-				return details.version_group.name === "emerald";
-			})
+		const learningArray = ['egg', 'level-up'];
 
-			if (index >= 0) {
-				const learnMethod = moveData.version_group_details[index].move_learn_method.name;
-				const levelLearned = moveData.version_group_details[index].level_learned_at;
-				const moveName = moveData.move.name;
-		
-				if (!(moveNames.includes(moveName)) && levelLearned <= pokemonLevel && ['egg', 'level-up'].includes(learnMethod)) {
-					filtered.push(moveData.move);
-				}
-			}
-			return filtered;
-		}, [])
+		const moveOptions = dataFunctions.moveOptionParser(pokemon, pokemonQuery.data.moves, learningArray);
 
 		pokemon.moveOptions = moveOptions;
-
-		console.log(pokemon);
 		
 		res.render('pokemon/show', {title: 'Pokemon', pokemon, currentPokemon});
 	} catch(err) {

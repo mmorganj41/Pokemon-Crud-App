@@ -22,24 +22,9 @@ async function index(req, res, next) {
 
 		const moves = await Move.find({pokemon: pokemon._id});
 		pokemon.moves = moves;
-		const moveNames = moves.map(move => move.name);
 
-		const moveOptions = pokemonQuery.data.moves.reduce((filtered, moveData) => {
-			const index = moveData.version_group_details.findIndex(details => {
-				return details.version_group.name === "emerald";
-			})
-
-			if (index >= 0) {
-				const learnMethod = moveData.version_group_details[index].move_learn_method.name;
-				const levelLearned = moveData.version_group_details[index].level_learned_at;
-				const moveName = moveData.move.name;
-		
-				if (!(moveNames.includes(moveName)) && levelLearned <= pokemon.level && !['egg', 'level-up'].includes(learnMethod)) {
-					filtered.push(moveData.move);
-				}
-			}
-			return filtered;
-		}, [])
+		const learningArray = ['egg', 'level-up'];
+		const moveOptions = dataFunctions.moveOptionParser(pokemon, pokemonQuery.data.moves, learningArray, false);
 
 		pokemon.moveOptions = moveOptions;
 

@@ -63,6 +63,28 @@ function imageGen(bool, query){
 		return [query.sprites.front_default, query.sprites.back_default];
 	}
 }
+
+function moveOptionParser(pokemonWithLevel, allMoves, learningArray, includeBool=true) {
+	const moveNames = pokemonWithLevel.moves.map(move => move.name);
+	
+	return allMoves.reduce((filtered, moveData) => {
+		const index = moveData.version_group_details.findIndex(details => {
+			return details.version_group.name === "emerald";
+		})
+
+		if (index >= 0) {
+			const learnMethod = moveData.version_group_details[index].move_learn_method.name;
+			const levelLearned = moveData.version_group_details[index].level_learned_at;
+			const moveName = moveData.move.name;
+
+			if (!(moveNames.includes(moveName)) && levelLearned <= pokemonWithLevel.level && (includeBool ? learningArray.includes(learnMethod) : !learningArray.includes(learnMethod))) {
+				filtered.push(moveData.move);
+			}
+		}
+		return filtered;
+	}, [])
+}
+
 const stats = ['hp', 'attack', 'defense', 'speed', 'specialAttack', 'specialDefense'];
 
 module.exports = {
@@ -74,4 +96,5 @@ module.exports = {
 	shinyGen,
 	natureGen,
 	stats,
+	moveOptionParser,
 }
