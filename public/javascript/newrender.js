@@ -22,7 +22,7 @@ const statIndices = {
 const pokemonObj = {};
 
 init().then(() => {
-	imageEl.src = '';
+	initialInfo();
 	select.addEventListener('change', updateInfo);
 });
 
@@ -51,21 +51,29 @@ async function init() {
 
 function updateInfo(event) {
 	let name = event.target.value.match(/(?<=pokemon\/)[a-zA-Z\-]*/)[0];
-	let renderInfo = pokemonObj[name];
-	imageEl.src = renderInfo.image;
-	nameEl.innerText = name;
-	while (typeEl.firstChild) {
-		typeEl.removeChild(typeEl.lastChild);
-	}
-	renderInfo.type.forEach(t => {
-		let tDiv = document.createElement('div');
-		tDiv.textContent = t;
-		typeEl.append(tDiv);
-	})
-	stats.forEach(stat => {
-		let value = Math.min(renderInfo[stat], 130)/130*100
-		statsEl[stat].style.width = value + '%';
-		statsEl[stat].text = value;
-	})
+	renderFromName(name);
 }
 
+function initialInfo() {
+	let name = select.value.match(/(?<=pokemon\/)[a-zA-Z\-]*/)[0];
+	renderFromName(name);
+}
+
+function renderFromName(name) {
+		let renderInfo = pokemonObj[name];
+		imageEl.src = renderInfo.image;
+		nameEl.innerText = name;
+		while (typeEl.firstChild) {
+			typeEl.removeChild(typeEl.lastChild);
+		}
+		renderInfo.type.forEach(t => {
+			let tDiv = document.createElement('div');
+			tDiv.textContent = t;
+			typeEl.append(tDiv);
+		})
+		stats.forEach(stat => {
+			let value = Math.min(renderInfo[stat], 130)/130*100
+			statsEl[stat].style.width = value + '%';
+			statsEl[stat].text = value;
+	})
+}
