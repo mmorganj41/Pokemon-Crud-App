@@ -724,6 +724,11 @@ input[type=submit]:hover {
 	background-color: rgb(232, 230, 227);
 }
 
+#tutor input[type=submit] {
+	margin-top: 5px;
+	padding: 1px 5px;
+}
+
 @keyframes battleidle {
     0% {
 		transform: translateX(-.2em) rotate(-3deg);
@@ -806,6 +811,7 @@ input[type=submit]:hover {
  @media only screen and (max-width: 576px) {
 	#pokemonshow {
 		grid-template-columns: auto;
+		margin-top: 20px;
 		padding: 10px;
 		gap: 10px;
 	}
@@ -813,16 +819,54 @@ input[type=submit]:hover {
 		flex-direction: column-reverse;
 	}
 	#statgrid {
-		grid-template-columns: repeat(3, 1fr);
-		grid-template-rows: repeat(2, 1fr);
+		grid-template-columns: repeat(1, 1fr);
+		grid-template-rows: repeat(6, 1fr);
 	}
-
+	nav a {
+		font-size: 10px;
+		text-align: center;
+		max-width: 50px;
+	}
 	.nomedia {
 		display: none;
 	}
 	#shop {
 		flex-direction: column;
 	}
+	#newpokemon {
+		display: grid;
+		grid-template-columns: auto auto;
+		grid-template-rows: auto auto;
+		gap: 10px;
+	}
+	#newpokemon > div{
+		margin: 0px;
+	}
+
+	#newpokemon > div:last-child {
+		grid-column: span 2;
+	}
+
+	#newpokeform {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	#battle {
+		padding: 5px;
+	}
+
+	#battle th {
+		font-size: 15px;
+	}
+
+	#battle > div {
+		margin: 10px;
+		padding: 10px;
+	}
+
+
 }
 
 @media only screen and (min-width: 577px) {

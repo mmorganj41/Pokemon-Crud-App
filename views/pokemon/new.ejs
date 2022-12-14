@@ -28,16 +28,19 @@
 			<% }) %>
 		</div>
 	</div>
-	<form action="/pokemon" method="post">
-		<label>Name</label>
-		<select name="url">
-			<% pokemon.forEach(p => { %>
-				<option value="<%= `https://pokeapi.co/api/v2/pokemon/${p.name}` %> "><%= p.name %> </option>
-			<% }) %>
-		</select>
-		<label>Nickname</label>
-		<input type="text" name="nickname">
-		<input type="submit" value="Catch!">
+	<form action="/pokemon" method="post" id="newpokeform">
+		<label>Name
+			<select name="url">
+				<% pokemon.forEach(p => { %>
+					<option value="<%= `https://pokeapi.co/api/v2/pokemon/${p.name}` %> "><%= p.name %> </option>
+				<% }) %>
+			</select>
+		</label>
+		<label>Nickname
+			<input type="text" name="nickname">
+		</label>
+			<input type="submit" value="Catch!">
+	
 	</form>
 	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 	<script src="/javascript/newrender.js"></script>
