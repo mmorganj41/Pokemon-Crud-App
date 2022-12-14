@@ -45,7 +45,7 @@
 					<div>
 						<div><a href="/moves/<%= move._id %>"><%= move.name %></a></div>
 						<div>
-							<% if (user?._id?.equals(pokemon.user)) { %>
+							<% if (user?._id?.equals(pokemon.user) || user?.admin === true) { %>
 								<form action="/moves/<%= move._id%>?_method=DELETE" method="post" class="delete">
 									<input type="submit" value="X">
 								</form>

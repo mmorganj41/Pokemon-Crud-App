@@ -2,7 +2,7 @@
 	<div id="sprite"><h3><%= pokemon.name[0].toUpperCase() + pokemon.name.substring(1, pokemon.name.length) %></h3>
 		<div>
 			<img src="<%= pokemon.images[0] %>" alt="<%= pokemon.images[0] %>">
-			<% if (pokemon.evolution.length > 0 && pokemon.evolution.some(evolution => pokemon.level >= evolution.data.min_level && user?._id?.equals(pokemon.user))) { %>
+			<% if (pokemon.evolution.length > 0 && pokemon.evolution.some(evolution => pokemon.level >= evolution.data.min_level) && (user?._id?.equals(pokemon.user) || user?.admin === true)) { %>
 				<form action="/pokemon/<%= pokemon._id%>/evolve?_method=PUT" method="post" id="evolve">
 					<input type="submit" value="Evolve!">
 				</form>
@@ -62,7 +62,7 @@
 				<div>
 					<div><a href="/moves/<%= move._id %>"><%= move.name %></a></div>
 					<div>
-						<% if (user?._id?.equals(pokemon.user)) { %>
+						<% if (user?._id?.equals(pokemon.user) || user?.admin === true) { %>
 							<form action="/moves/<%= move._id%>?_method=DELETE" method="post" class="delete">
 								<input type="submit" value="🚫">
 							</form>
@@ -71,7 +71,7 @@
 				</div>
 			<% }) %>
 		</div>
-		<% if ((pokemon.moves.length < 6) && (user?._id?.equals(pokemon.user))) { %>
+		<% if ((pokemon.moves.length < 6) && (user?._id?.equals(pokemon.user) || user?.admin === true)) { %>
 			<form action="/pokemon/<%= pokemon._id %>/moves" method="post" id="movesform">
 				<select name="url">
 					<% pokemon.moveOptions.forEach(m => { %>

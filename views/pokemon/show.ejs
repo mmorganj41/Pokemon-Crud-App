@@ -1,6 +1,6 @@
 <%- include('../partials/header') %>
 <section id="showcontrollers">
-<% if (user?._id?.equals(pokemon.user)) { %>
+<% if (user?._id?.equals(pokemon.user) || user?.admin === true) { %>
 	<form action="/pokemon/<%= pokemon._id%>/battle" id="battlebutton">
 		<input type="submit" value="Battle With This Pokemon.">
 	</form>
@@ -10,7 +10,7 @@
 		</form>
 	<% } %>
 <% } %>
-<% if (String(user?.currentPokemon) != pokemon._id && user?.currentPokemon) { %>
+<% if (String(user?.currentPokemon) != pokemon._id && user?.currentPokemon){ %>
 	<% const date = new Date(), day = 1000 * 60 * 60 * 24 %> 
 	<% const canBattle = (currentPokemon.currentHp > 0 && (date - currentPokemon.energy)/day*4*100 > 5) && (100-(date - currentPokemon.hunger)/day/3*100 > 5)%> 
 	<% if (canBattle) { %>
@@ -26,7 +26,7 @@
 </section>
 <%- include('../partials/pokeshow') %>
 <br />
-<% if (user?._id?.equals(pokemon.user)) { %>
+<% if (user?._id?.equals(pokemon.user) || user?.admin === true) { %>
 	<form onsubmit="return confirm('Do you really want to get rid of your pokemon forever?');" action="/pokemon/<%= pokemon._id%>?_method=DELETE" method="post" class="release">
 		<input type="submit" value="Release This Pokemon">
 	</form>

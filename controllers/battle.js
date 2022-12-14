@@ -10,7 +10,7 @@ async function index(req, res, next){
 	try {
 		const pokemon = await Pokemon.findById(req.params.pokeid);
 		
-		if (req.user?._id != String(pokemon.user)) return res.redirect(`/pokemon/${req.params.pokeid}`)
+		if (req.user?._id != String(pokemon.user) && !req.user?.admin) return res.redirect(`/pokemon/${req.params.pokeid}`)
 
 		const opponents = await Pokemon.find({_id: {$ne: req.params.pokeid}});
 		const moves = await Move.find({pokemon: req.params.pokeid});
@@ -35,8 +35,9 @@ async function index(req, res, next){
 			if (index >= 0) {
 				const learnMethod = moveData.version_group_details[index].move_learn_method.name;
 				const levelLearned = moveData.version_group_details[index].level_learned_at;
+				const moveName = moveData.move.name;
 		
-				if (levelLearned <= pokemon.level && ['egg', 'level-up'].includes(learnMethod)) {
+				if (!(moveNames.includes(moveName)) && levelLearned <= pokemon.level && ['egg', 'level-up'].includes(learnMethod)) {
 					filtered.push(moveData.move);
 				}
 			}
@@ -61,7 +62,7 @@ async function show(req, res, next) {
 	try {
 		const pokemon = await Pokemon.findById(req.params.pokeid);
 
-		if (req.user?._id != String(pokemon.user)) return res.redirect(`/pokemon/${req.params.pokeid}`);
+		if (req.user?._id != String(pokemon.user) && !req.user?.admin) return res.redirect(`/pokemon/${req.params.pokeid}`);
 
 		const opponent = await Pokemon.findById(req.params.oppid);
 
@@ -87,7 +88,7 @@ async function random(req, res, next){
 	try {
 		const pokemon = await Pokemon.findById(req.params.pokeid);
 
-		if (req.user?._id != String(pokemon.user)) return res.redirect(`/pokemon/${req.params.pokeid}`);
+		if (req.user?._id != String(pokemon.user) && !req.user?.admin) return res.redirect(`/pokemon/${req.params.pokeid}`);
 
 		const pokeMoves = await Move.find({pokemon: req.params.pokeid});
 

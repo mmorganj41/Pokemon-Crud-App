@@ -12,6 +12,10 @@ const userSchema = new Schema({
   money: Number,
   currentPokemon: {type: Schema.Types.ObjectId, ref :'Pokemon'},
   pokemonImage: String,
+  admin: {
+	type: Boolean,
+	default: false,
+  }
 }, {
   timestamps: true
 });
