@@ -4,4 +4,15 @@ const Move = require('../models/move');
 const User = require('../models/user');
 const dataFunctions = require('../config/datafunctions');
 
-module.exports = {}
+async function index(req, res, next) {
+	try {
+		res.render('trades/index', {title: 'Trades'});
+	} catch(err) {
+		console.log(err);
+		res.redirect('/');
+	}
+}
+
+module.exports = {
+	index,
+}
