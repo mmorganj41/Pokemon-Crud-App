@@ -8,9 +8,8 @@ router.put('/user/currentPokemon/:id', isLoggedIn, usersController.selectPokemon
 
 // The root route renders our only view
 router.get('/', function(req, res) {
-	console.log(req.protocol + '://' + req.get('host') + req.originalUrl);
 	res.render('index', {title: 'Pokemon!'})
-})
+});
 
 router.get('/redirect', function(req, res) {
   if (req.user?.currentPokemon) {

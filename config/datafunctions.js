@@ -21,7 +21,7 @@ function pokemonLevel(experience) {
 }
 
 function moveLevel(experience) {
-	return Math.min(Math.floor(experience ** (1 / 3)), 10);
+	return Math.min(Math.floor((experience/10-10) ** (1 / 3)), 10);
 }
 
 function statGen(name, nature){

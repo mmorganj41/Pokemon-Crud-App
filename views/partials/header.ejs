@@ -9,22 +9,25 @@
 	<title><%= title %> </title>
 </head>
 <body>
-	<nav>		
-		<% if (user?.pokemonImage && user?.currentPokemon) { %>
-			<a href="/pokemon/<%= user?.currentPokemon?.toString()%>" <% if (pathurl === `/pokemon/${user?.currentPokemon?.toString()}`) {%>class="active"<% } %>><img src="<%= user.pokemonImage %>" alt="Pokemon"></a>
-			<a href="/shop" <% if (pathurl === "/shop") {%>class="active"<% } %>>🪙: <%= user?.money %> </a>
-		<% } else { %>
-			<img src="/images/favicon.ico">
-		<% } %>
-		<div>
-		</div> 
-		<a href="/pokemon" <% if (pathurl === "/pokemon") {%>class="active"<% } %>>All Pokemon</a>
-		<% if (user) { %>
-			<a href="/pokemon/new" <% if (pathurl === "/pokemon/new") {%>class="active"<% } %> >Catch a Pokemon</a>
-			<a href="/pokemon/user" <% if (pathurl === "/pokemon/user") {%>class="active"<% } %> >My Pokemon</a>
-			<a href="/logout">Log Out</a>
-		<% } else { %>
-			<a href="/auth/google" class="login"><img src="https://i.imgur.com/FHjYyi0.png">&nbsp;Login</a>
-		<% } %>
-	</nav>
+	<% if (!/(?<=\/battle\/)\S*/.test(pathurl)) { %>
+		<nav>		
+			<% if (user?.pokemonImage && user?.currentPokemon) { %>
+				<a href="/pokemon/<%= user?.currentPokemon?.toString()%>" <% if (pathurl === `/pokemon/${user?.currentPokemon?.toString()}`) {%>class="active"<% } %>><img src="<%= user.pokemonImage %>" alt="Pokemon"></a>
+				<a href="/shop" <% if (pathurl === "/shop") {%>class="active"<% } %>>🪙: <%= user?.money %> </a>
+			<% } else { %>
+				<img src="/images/favicon.ico">
+			<% } %>
+			<div>
+			</div> 
+			<a href="/pokemon" <% if (pathurl === "/pokemon") {%>class="active"<% } %>>All Pokemon</a>
+			<% if (user) { %>
+				<a href="/pokemon/new" <% if (pathurl === "/pokemon/new") {%>class="active"<% } %> >Catch a Pokemon</a>
+				<a href="/pokemon/user" <% if (pathurl === "/pokemon/user") {%>class="active"<% } %> >My Pokemon</a>
+				<a href="/logout">Log Out</a>
+			<% } else { %>
+				<a href="/auth/google" class="login"><img src="https://i.imgur.com/FHjYyi0.png">&nbsp;Login</a>
+			<% } %>
+		</nav>
+	<% } %>
+
 	<main>
