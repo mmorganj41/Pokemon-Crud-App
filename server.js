@@ -18,6 +18,7 @@ const movesRouter = require('./routes/moves');
 const battleRouter = require('./routes/battle');
 const apiRouter = require('./routes/api');
 const shopRouter = require('./routes/shop');
+const tradeRouter = require('./routes/trades');
 
 
 // create the Express app
@@ -74,6 +75,7 @@ app.use('/', movesRouter);
 app.use('/', battleRouter);
 app.use('/api', apiRouter);
 app.use('/shop', shopRouter);
+app.use('/', tradeRouter);
 
 
 // invalid request, send 404 page
