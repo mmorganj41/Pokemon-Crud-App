@@ -880,8 +880,25 @@ input[type=submit]:hover {
 	#battleactions > div {
 		border: black 3px solid;
 		margin: 3px;
-		font-size: 20px;
+		font-size: 15px;
 		height: 170px;
+	}
+
+	#opponentpokemon {
+		margin-top: 10px;
+		margin-right: 50px;
+	}
+
+	#userpokemon {
+		margin-left: 65px;
+	}
+
+	#opponentpokemon .info {
+		margin-bottom: 0px;
+	}
+
+	#opponentpokemon img {
+		transform: translateY(20px) scale(.75);;
 	}
 
 	.info, .info h3{
@@ -900,12 +917,74 @@ input[type=submit]:hover {
 		padding: 3px;
 	}
 
+	#infopanel {
+		font-size: 12px;		
+	}
+
+	#infopanel h3 {
+		font-size: 14px;
+		margin: 0;
+	}
+
 	.info .bar {
 		height: 15px;
 	}
 
-	.battlesprite {
-		transform: scale(.5);
+	#userpokemon .info {
+		margin-top: 30px;
+		margin-bottom: 0;
+		margin-left: 30px;
+	}
+
+	#userpokemon img {
+		transform: translateY(-35px) scale(.75);;
+	}
+
+	#userpokemon .physical {
+		--Xdirection: 1.5em;
+	}
+	
+	#userpokemon .physical div {
+		--Ydirection: -2.5em;
+	}
+	
+	#opponentpokemon .physical {
+		--Xdirection: -3.5em;
+	}
+	
+	#opponentpokemon .physical div {
+		--Ydirection: 1.5em;
+	}
+
+	#infopanel th {
+		font-size: 12px;
+		padding: 1px;
+	}
+
+	#infopanel td {
+		font-size: 10px;
+	}
+
+	#infopanel > div {
+		height: 100%;
+		margin: 0;
+	}
+
+	#infopanel > div > div {
+		margin:10px;
+		justify-content: space-around;
+	}
+
+	#movetable {
+		align-self: center;
+	}
+
+	#infopanel > div > div > div {
+		margin: 0;
+	}
+
+	#infopanel #pokemonInfo {
+		justify-content: flex-start;
 	}
 }
 

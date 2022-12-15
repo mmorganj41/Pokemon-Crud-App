@@ -1554,7 +1554,7 @@ function renderInfo() {
 
 function renderPokemon() {
 	infoPanelEl.classList.remove("hidden");
-	infoPanelEl.innerHTML = `<div><div id="sprite">
+	infoPanelEl.innerHTML = `<div id="pokemonInfo"><div id="sprite">
 		<div><img src="${playerPokemon.images[0]}" alt="${playerPokemon.images[0]}"></div><div><h3>${playerPokemon.name[0].toUpperCase() + playerPokemon.name.substring(1, playerPokemon.name.length)}</h3></div>
 	</div>
 	<div>
