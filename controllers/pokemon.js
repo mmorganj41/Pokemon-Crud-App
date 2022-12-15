@@ -27,7 +27,7 @@ async function findAvailablePokemon() {
 		const possiblePokemon = await Promise.all(availableP);
 
 		possiblePokemon.forEach(pQuery => {
-			if (!pQuery.data.evolves_from_species?.name && pQuery.data.egg_groups[0]?.name !== 'no-eggs') {
+			if (!pQuery.data.evolves_from_species?.name && (pQuery.data.egg_groups[0]?.name !== 'no-eggs' || pQuery.data.is_baby)) {
 				let number = pQuery.data.id;
 				availablePokemon[number] = {name: pQuery.data.name, url: `${pokeAPIURL}pokemon/${pQuery.data.name}`};
 			}
