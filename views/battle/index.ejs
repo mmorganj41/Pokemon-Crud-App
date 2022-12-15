@@ -2,7 +2,7 @@
 	<% const date = new Date(), day = 1000 * 60 * 60 * 24 %> 
 	<% const hpBool =  pokemon.currentHp > 0, energyBool = (date - pokemon.energy)/day*4*100 > 5, hungerBool = (100-(date - pokemon.hunger)/day/3*100 > 5) %> 
 	<% const canBattle = (hpBool && energyBool && hungerBool)%> 
-	<h1>Battle an Opponent</h1>
+	<h1>Battle</h1>
 	<% if (canBattle) { %> 
 	<form action="/pokemon/<%= pokemon._id %>/battle/random">
 		<input type="submit" value="Battle Random" />
@@ -24,8 +24,8 @@
 			<table id="pokemonlist">
 				<tr class="headers">
 					<th>Pokemon&nbsp;</th>
-					<th>Level</th>
-					<th>Types</th>
+					<th>Lvl</th>
+					<th>Type</th>
 					<th>Stats</th>
 					<% if (canBattle) { %>
 					<th></th>
@@ -47,7 +47,7 @@
 						</td>
 						<% if (canBattle) { %>
 							<td><form action="/pokemon/<%= pokemon._id %>/battle/<%= p._id %>">
-								<input type="submit" value="Battle!" />
+								<input type="submit" value="Battle!" id="trybattle"/>
 							</form>
 							</td>
 						<% } %>

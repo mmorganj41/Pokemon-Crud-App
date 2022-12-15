@@ -819,6 +819,10 @@ input[type=submit]:hover {
 	#battle {
 		flex-direction: column-reverse;
 	}
+	#battle #pokemonlist {
+		font-size: 10px;
+	}
+
 	#statgrid {
 		grid-template-columns: repeat(1, 1fr);
 		grid-template-rows: repeat(6, 1fr);
@@ -859,7 +863,7 @@ input[type=submit]:hover {
 	}
 
 	#battle th {
-		font-size: 15px;
+		font-size: 12px;
 	}
 
 	#battle > div {
@@ -987,6 +991,10 @@ input[type=submit]:hover {
 		justify-content: flex-start;
 	}
 
+	#trybattle {
+		font-size: 0;
+		line-height: 0;
+	}
 }
 
 @media only screen and (min-width: 577px) {
